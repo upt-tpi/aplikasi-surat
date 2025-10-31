@@ -632,9 +632,17 @@
 <body>
     <div class="container">
         <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
             <h1>📧 Aplikasi Manajemen Surat</h1>
             <p>Kelola Surat Masuk dan Surat Keluar dengan Integrasi Google Sheets</p>
         </div>
+        <button class="btn btn-danger" onclick="logout()" style="margin-left: 20px;">
+            <span>🚪</span> Logout
+        </button>
+    </div>
+        </div>
+    
 
         <div class="config-section">
             <div class="config-header" onclick="toggleConfig()">
@@ -1419,5 +1427,32 @@
             }
         }
     </script>
+    <script>
+    // Tambahkan fungsi logout
+function logout() {
+    if (confirm('Apakah Anda yakin ingin logout?')) {
+        localStorage.removeItem('isLoggedIn');
+        localStorage.removeItem('username');
+        window.location.href = 'https://upt-tpi.github.io/aplikasi-surat/login.html';
+    }
+}
+
+// Tambahkan pengecekan login saat halaman dimuat
+window.addEventListener('load', async () => {
+    // Check if user is logged in
+    const isLoggedIn = localStorage.getItem('isLoggedIn');
+    if (isLoggedIn !== 'true') {
+        // Redirect to login page
+        window.location.href = 'https://upt-tpi.github.io/aplikasi-surat/login.html';
+        return;
+    }
+    
+    // Load config and data
+    await loadConfig();
+    await loadLocalData();
+    renderTable();
+});
+        </script>
 </body>
 </html>
+
