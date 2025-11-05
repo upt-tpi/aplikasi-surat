@@ -269,29 +269,6 @@
             margin-top: 20px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            position: relative;
-        }
-
-        .table-container::after {
-            content: "→ Geser untuk melihat lebih banyak →";
-            position: absolute;
-            bottom: 10px;
-            right: 10px;
-            background: rgba(102, 126, 234, 0.8);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 15px;
-            font-size: 0.75rem;
-            z-index: 10;
-            opacity: 0.8;
-            pointer-events: none;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.6; }
-            50% { opacity: 1; }
-            100% { opacity: 0.6; }
         }
 
         table {
@@ -479,45 +456,6 @@
             color: #721c24;
         }
 
-        .file-link {
-            color: #667eea;
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .file-link:hover {
-            text-decoration: underline;
-        }
-
-        .upload-progress {
-            width: 100%;
-            height: 8px;
-            background: #e0e0e0;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-
-        .upload-progress-bar {
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            transition: width 0.3s;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
         .alert {
             padding: 15px;
             border-radius: 8px;
@@ -549,44 +487,18 @@
             border: 1px solid #ffeaa7;
         }
 
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-top: 25px;
-            flex-wrap: wrap;
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
         }
 
-        .pagination button {
-            padding: 8px 12px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-        }
-
-        .pagination button:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .pagination button.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .pagination-info {
-            color: #666;
-            font-size: 0.9rem;
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
 
         @media (max-width: 768px) {
@@ -600,40 +512,6 @@
 
             .search-box {
                 width: 100%;
-            }
-
-            .table-container {
-                overflow-x: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-            
-            .table-container::after {
-                display: block;
-            }
-            
-            th, td {
-                padding: 10px 8px;
-                font-size: 0.8rem;
-            }
-            
-            .btn-sm {
-                padding: 4px 8px;
-                font-size: 0.75rem;
-            }
-            
-            .modal-content {
-                width: 95%;
-                max-height: 95vh;
-            }
-            
-            .modal-body {
-                padding: 20px;
-            }
-        }
-        
-        @media (min-width: 769px) {
-            .table-container::after {
-                display: none;
             }
         }
     </style>
@@ -658,6 +536,9 @@
                 <span class="config-toggle" id="configToggle">▼</span>
             </div>
             <div class="config-content" id="configContent">
+                <div class="alert alert-warning">
+                    ⚠️ <strong>Penting:</strong> Deploy Google Apps Script dengan akses <strong>"Anyone"</strong> (bukan "Anyone with Google account")
+                </div>
                 <div class="config-row">
                     <div class="config-group">
                         <label>🔗 Google Apps Script Web App URL</label>
@@ -695,6 +576,9 @@
                     <span>🔍</span>
                     <input type="text" id="searchInput" placeholder="Cari surat..." onkeyup="filterTable()">
                 </div>
+                <button class="btn btn-secondary btn-sm" onclick="showDebugInfo()">
+                    🐛 Debug
+                </button>
                 <button class="btn btn-primary" onclick="openModal('add')">
                     <span>➕</span> Tambah Surat
                 </button>
@@ -730,18 +614,16 @@
         let suratKeluar = [];
         let editingId = null;
         let apiUrl = '';
-        let currentPage = 1;
-        let itemsPerPage = 10;
 
-        window.addEventListener('load', async () => {
+        window.addEventListener('load', () => {
             const isLoggedIn = localStorage.getItem('isLoggedIn');
             if (isLoggedIn !== 'true') {
                 window.location.href = 'https://upt-tpi.github.io/aplikasi-surat/login.html';
                 return;
             }
             
-            await loadConfig();
-            await loadLocalData();
+            loadConfig();
+            loadLocalData();
             renderTable();
         });
 
@@ -758,11 +640,11 @@
             }
         }
 
-        async function loadConfig() {
+        function loadConfig() {
             try {
-                const result = await window.storage.get('api-config');
-                if (result) {
-                    const config = JSON.parse(result.value);
+                const configStr = localStorage.getItem('api-config');
+                if (configStr) {
+                    const config = JSON.parse(configStr);
                     apiUrl = config.apiUrl || '';
                     document.getElementById('apiUrl').value = apiUrl;
                     if (apiUrl) {
@@ -770,41 +652,43 @@
                     }
                 }
             } catch (error) {
-                console.log('Config belum ada');
+                console.log('Config belum ada:', error);
             }
         }
 
-        async function saveConfig() {
+        function saveConfig() {
             apiUrl = document.getElementById('apiUrl').value;
             try {
-                await window.storage.set('api-config', JSON.stringify({ apiUrl }));
+                localStorage.setItem('api-config', JSON.stringify({ apiUrl }));
             } catch (error) {
                 console.error('Error saving config:', error);
             }
         }
 
-        async function loadLocalData() {
+        function loadLocalData() {
             try {
-                const masukResult = await window.storage.get('surat-masuk');
-                const keluarResult = await window.storage.get('surat-keluar');
+                const masukStr = localStorage.getItem('surat-masuk');
+                const keluarStr = localStorage.getItem('surat-keluar');
                 
-                if (masukResult) {
-                    suratMasuk = JSON.parse(masukResult.value);
+                if (masukStr) {
+                    suratMasuk = JSON.parse(masukStr);
                 }
-                if (keluarResult) {
-                    suratKeluar = JSON.parse(keluarResult.value);
+                if (keluarStr) {
+                    suratKeluar = JSON.parse(keluarStr);
                 }
             } catch (error) {
-                console.log('Data lokal belum ada');
+                console.log('Data lokal belum ada:', error);
             }
         }
 
-        async function saveLocalData() {
+        function saveLocalData() {
             try {
-                await window.storage.set('surat-masuk', JSON.stringify(suratMasuk));
-                await window.storage.set('surat-keluar', JSON.stringify(suratKeluar));
+                localStorage.setItem('surat-masuk', JSON.stringify(suratMasuk));
+                localStorage.setItem('surat-keluar', JSON.stringify(suratKeluar));
+                console.log('✅ Data tersimpan lokal');
             } catch (error) {
-                console.error('Error saving local data:', error);
+                console.error('❌ Error saving local data:', error);
+                throw error;
             }
         }
 
@@ -838,21 +722,24 @@
             btn.innerHTML = '<div class="loading"></div> Testing...';
 
             try {
+                console.log('Testing URL:', url);
                 const response = await fetch(url + '?action=test', {
-                    method: 'GET',
-                    mode: 'cors'
+                    method: 'GET'
                 });
                 
+                console.log('Response status:', response.status);
                 const data = await response.json();
+                console.log('Response data:', data);
                 
                 if (data.status === 'success') {
-                    await saveConfig();
+                    saveConfig();
                     updateConnectionStatus(true);
                     showAlert('✅ Koneksi berhasil! Siap sync dengan Google Sheets', 'success');
                 } else {
                     throw new Error(data.message || 'Koneksi gagal');
                 }
             } catch (error) {
+                console.error('Test connection error:', error);
                 updateConnectionStatus(false);
                 showAlert('❌ Koneksi gagal: ' + error.message, 'danger');
             } finally {
@@ -870,17 +757,13 @@
             btn.innerHTML = '<div class="loading"></div> Syncing...';
 
             try {
-                const response = await fetch(apiUrl + '?action=getData', {
-                    method: 'GET',
-                    mode: 'cors'
-                });
-                
+                const response = await fetch(apiUrl + '?action=getData');
                 const data = await response.json();
                 
                 if (data.status === 'success') {
                     suratMasuk = data.suratMasuk || [];
                     suratKeluar = data.suratKeluar || [];
-                    await saveLocalData();
+                    saveLocalData();
                     renderTable();
                     showAlert('✅ Data berhasil di-sync dari Google Sheets!', 'success');
                 } else {
@@ -895,44 +778,56 @@
 
         async function syncToSheet(action, sheetType, rowData) {
             if (!apiUrl) {
-                console.log('API URL belum dikonfigurasi');
-                return;
+                console.log('⚠️ API URL belum dikonfigurasi, skip sync');
+                return { status: 'skipped', message: 'API not configured' };
             }
 
             try {
-                console.log('Syncing to sheet:', {action, sheetType, rowData});
+                console.log('=== SYNC TO SHEET ===');
+                console.log('Action:', action);
+                console.log('Sheet Type:', sheetType);
+                console.log('Row Data:', rowData);
+                
+                const payload = {
+                    action: action,
+                    sheetType: sheetType,
+                    data: rowData
+                };
+                
+                console.log('Sending payload:', JSON.stringify(payload, null, 2));
                 
                 const response = await fetch(apiUrl, {
                     method: 'POST',
-                    mode: 'cors',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'text/plain'
                     },
-                    body: JSON.stringify({
-                        action: action,
-                        sheetType: sheetType,
-                        data: rowData
-                    })
+                    body: JSON.stringify(payload)
                 });
                 
-                const result = await response.json();
-                console.log('Sync response:', result);
+                console.log('Response status:', response.status);
+                
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
+                const result = JSON.parse(responseText);
+                console.log('Parsed result:', result);
                 
                 if (result.status !== 'success') {
                     throw new Error(result.message || 'Sync gagal');
                 }
                 
+                console.log('=== SYNC SUCCESS ===');
                 return result;
                 
             } catch (error) {
-                console.error('Error sync:', error);
+                console.error('=== SYNC ERROR ===');
+                console.error('Error:', error);
                 throw error;
             }
         }
 
         function switchTab(tab) {
             activeTab = tab;
-            currentPage = 1;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.closest('.tab').classList.add('active');
             document.getElementById('searchInput').value = '';
@@ -941,25 +836,11 @@
 
         function formatDisplayDate(dateString) {
             if (!dateString || dateString === '-') return '-';
-            
             if (dateString.includes('/') && dateString.length <= 10) return dateString;
             
             try {
-                let date;
-                
-                if (dateString.includes('-')) {
-                    date = new Date(dateString);
-                } 
-                else if (!isNaN(dateString)) {
-                    date = new Date(parseInt(dateString));
-                }
-                else {
-                    date = new Date(dateString);
-                }
-                
-                if (isNaN(date.getTime())) {
-                    return dateString;
-                }
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return dateString;
                 
                 const day = String(date.getDate()).padStart(2, '0');
                 const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -982,18 +863,13 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                         <h3>Belum ada data</h3>
-                        <p>Klik tombol "Tambah Surat" untuk menambahkan data baru atau "Sync Data" untuk mengambil dari Google Sheets</p>
+                        <p>Klik "Tambah Surat" atau "Sync Data" untuk mulai</p>
                     </div>
                 `;
                 return;
             }
 
-            const totalPages = Math.ceil(data.length / itemsPerPage);
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = startIndex + itemsPerPage;
-            const paginatedData = data.slice(startIndex, endIndex);
-
-            let tableHTML = '<div class="table-container"><table id="suratTable"><thead><tr>';
+            let tableHTML = '<div class="table-container"><table><thead><tr>';
             
             if (activeTab === 'masuk') {
                 tableHTML += `
@@ -1022,10 +898,9 @@
 
             tableHTML += '</tr></thead><tbody>';
 
-            paginatedData.forEach((item, index) => {
-                const actualIndex = startIndex + index;
+            data.forEach((item, index) => {
                 tableHTML += '<tr>';
-                tableHTML += `<td>${actualIndex + 1}</td>`;
+                tableHTML += `<td>${index + 1}</td>`;
                 
                 if (activeTab === 'masuk') {
                     tableHTML += `
@@ -1061,38 +936,7 @@
             });
 
             tableHTML += '</tbody></table></div>';
-
-            if (totalPages > 1) {
-                tableHTML += '<div class="pagination">';
-                tableHTML += `<button onclick="changePage(1)" ${currentPage === 1 ? 'disabled' : ''}>⏮️ First</button>`;
-                tableHTML += `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>◀️ Prev</button>`;
-                
-                for (let i = 1; i <= totalPages; i++) {
-                    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                        tableHTML += `<button onclick="changePage(${i})" class="${currentPage === i ? 'active' : ''}">${i}</button>`;
-                    } else if (i === currentPage - 3 || i === currentPage + 3) {
-                        tableHTML += '<span style="padding: 8px;">...</span>';
-                    }
-                }
-                
-                tableHTML += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next ▶️</button>`;
-                tableHTML += `<button onclick="changePage(${totalPages})" ${currentPage === totalPages ? 'disabled' : ''}>Last ⏭️</button>`;
-                tableHTML += `<span class="pagination-info">Page ${currentPage} of ${totalPages} (Total: ${data.length} data)</span>`;
-                tableHTML += '</div>';
-            }
-
             container.innerHTML = tableHTML;
-        }
-
-        function changePage(page) {
-            const data = activeTab === 'masuk' ? suratMasuk : suratKeluar;
-            const totalPages = Math.ceil(data.length / itemsPerPage);
-            
-            if (page >= 1 && page <= totalPages) {
-                currentPage = page;
-                renderTable();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
         }
 
         function getStatusClass(status) {
@@ -1156,10 +1000,37 @@
                     </div>
                     <div class="form-group">
                         <label>File Surat PDF</label>
-                        <input type="file" id="fileInput" accept=".pdf" onchange="handleFileUpload(event)">
-                        <small style="color: #666; display: block; margin-top: 5px;">Upload file PDF (Maksimal 10MB)</small>
-                        <div id="fileStatus" style="margin-top: 10px;"></div>
-                        <input type="hidden" id="fileSurat">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleUploadMode('upload')" id="btnUploadMode">
+                                📤 Upload File
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleUploadMode('url')" id="btnUrlMode">
+                                🔗 Input URL
+                            </button>
+                        </div>
+                        
+                        <div id="uploadSection" style="display: none;">
+                            <input type="file" id="fileInput" accept=".pdf" onchange="handleFileUpload(event)">
+                            <small style="color: #666; display: block; margin-top: 5px;">Upload file PDF (Max 10MB)</small>
+                            <div id="uploadProgress" style="display: none; margin-top: 10px;">
+                                <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                    <div id="progressBar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                                </div>
+                                <small id="uploadStatus" style="color: #666; margin-top: 5px; display: block;">Uploading...</small>
+                            </div>
+                        </div>
+                        
+                        <div id="urlSection" style="display: block;">
+                            <input type="url" id="fileSurat" placeholder="https://drive.google.com/file/d/...">
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                Paste link Google Drive atau 
+                                <a href="https://drive.google.com/drive/folders/1cX7Texv-8clOR5i1Si5bUbwvaTcTXcKM?usp=sharing" target="_blank" style="color: #667eea;">
+                                    upload manual ke folder ini
+                                </a>
+                            </small>
+                        </div>
+                        
+                        <div id="filePreview" style="margin-top: 10px;"></div>
                     </div>
                 `;
             } else {
@@ -1195,10 +1066,37 @@
                     </div>
                     <div class="form-group">
                         <label>File Surat PDF</label>
-                        <input type="file" id="fileInput" accept=".pdf" onchange="handleFileUpload(event)">
-                        <small style="color: #666; display: block; margin-top: 5px;">Upload file PDF (Maksimal 10MB)</small>
-                        <div id="fileStatus" style="margin-top: 10px;"></div>
-                        <input type="hidden" id="fileSurat">
+                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleUploadMode('upload')" id="btnUploadMode">
+                                📤 Upload File
+                            </button>
+                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleUploadMode('url')" id="btnUrlMode">
+                                🔗 Input URL
+                            </button>
+                        </div>
+                        
+                        <div id="uploadSection" style="display: none;">
+                            <input type="file" id="fileInput" accept=".pdf" onchange="handleFileUpload(event)">
+                            <small style="color: #666; display: block; margin-top: 5px;">Upload file PDF (Max 10MB)</small>
+                            <div id="uploadProgress" style="display: none; margin-top: 10px;">
+                                <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
+                                    <div id="progressBar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                                </div>
+                                <small id="uploadStatus" style="color: #666; margin-top: 5px; display: block;">Uploading...</small>
+                            </div>
+                        </div>
+                        
+                        <div id="urlSection" style="display: block;">
+                            <input type="url" id="fileSurat" placeholder="https://drive.google.com/file/d/...">
+                            <small style="color: #666; display: block; margin-top: 5px;">
+                                Paste link Google Drive atau 
+                                <a href="https://drive.google.com/drive/folders/1cX7Texv-8clOR5i1Si5bUbwvaTcTXcKM?usp=sharing" target="_blank" style="color: #667eea;">
+                                    upload manual ke folder ini
+                                </a>
+                            </small>
+                        </div>
+                        
+                        <div id="filePreview" style="margin-top: 10px;"></div>
                     </div>
                 `;
             }
@@ -1212,67 +1110,102 @@
                 if (item) {
                     Object.keys(item).forEach(key => {
                         const input = document.getElementById(key);
-                        if (input && key !== 'fileSurat' && key !== 'id') {
+                        if (input && key !== 'id') {
                             input.value = item[key] || '';
                         }
                     });
                     
+                    // Show file preview if exists
                     if (item.fileSurat) {
-                        document.getElementById('fileStatus').innerHTML = `
-                            <div style="padding: 10px; background: #d4edda; border-radius: 5px; color: #155724;">
-                                📄 File tersedia: <a href="${item.fileSurat}" target="_blank" class="file-link">Lihat File</a>
+                        const preview = document.getElementById('filePreview');
+                        preview.innerHTML = `
+                            <div style="padding: 10px; background: #d4edda; border-radius: 8px; color: #155724;">
+                                ✅ File tersedia: <a href="${item.fileSurat}" target="_blank" style="color: #155724; font-weight: 600;">Lihat File</a>
                             </div>
                         `;
-                        document.getElementById('fileSurat').value = item.fileSurat;
                     }
                 }
             }
         }
 
+        function toggleUploadMode(mode) {
+            const uploadSection = document.getElementById('uploadSection');
+            const urlSection = document.getElementById('urlSection');
+            const btnUpload = document.getElementById('btnUploadMode');
+            const btnUrl = document.getElementById('btnUrlMode');
+            
+            if (mode === 'upload') {
+                uploadSection.style.display = 'block';
+                urlSection.style.display = 'none';
+                btnUpload.style.background = '#667eea';
+                btnUpload.style.color = 'white';
+                btnUrl.style.background = '#6c757d';
+                btnUrl.style.color = 'white';
+            } else {
+                uploadSection.style.display = 'none';
+                urlSection.style.display = 'block';
+                btnUpload.style.background = '#6c757d';
+                btnUpload.style.color = 'white';
+                btnUrl.style.background = '#667eea';
+                btnUrl.style.color = 'white';
+            }
+        }
+
         async function handleFileUpload(event) {
             const file = event.target.files[0];
-            const statusDiv = document.getElementById('fileStatus');
+            const preview = document.getElementById('filePreview');
+            const progress = document.getElementById('uploadProgress');
+            const progressBar = document.getElementById('progressBar');
+            const uploadStatus = document.getElementById('uploadStatus');
             
             if (!file) return;
             
+            // Validate file type
             if (file.type !== 'application/pdf') {
-                statusDiv.innerHTML = '<div style="color: #dc3545;">❌ Hanya file PDF yang diperbolehkan</div>';
+                preview.innerHTML = '<div style="padding: 10px; background: #f8d7da; border-radius: 8px; color: #721c24;">❌ Hanya file PDF yang diperbolehkan</div>';
                 event.target.value = '';
                 return;
             }
             
+            // Validate file size (10MB)
             if (file.size > 10 * 1024 * 1024) {
-                statusDiv.innerHTML = '<div style="color: #dc3545;">❌ Ukuran file maksimal 10MB</div>';
+                preview.innerHTML = '<div style="padding: 10px; background: #f8d7da; border-radius: 8px; color: #721c24;">❌ Ukuran file maksimal 10MB</div>';
                 event.target.value = '';
                 return;
             }
-            
-            statusDiv.innerHTML = `
-                <div style="color: #667eea;">⏳ Mengupload file ke Google Drive...</div>
-                <div class="upload-progress">
-                    <div class="upload-progress-bar" id="progressBar" style="width: 0%"></div>
-                </div>
-            `;
             
             if (!apiUrl) {
-                statusDiv.innerHTML = '<div style="color: #dc3545;">❌ API URL belum dikonfigurasi</div>';
+                preview.innerHTML = `
+                    <div style="padding: 10px; background: #fff3cd; border-radius: 8px; color: #856404;">
+                        ⚠️ API belum dikonfigurasi. Silakan:
+                        <br>1. Upload manual ke <a href="https://drive.google.com/drive/folders/1cX7Texv-8clOR5i1Si5bUbwvaTcTXcKM?usp=sharing" target="_blank" style="color: #856404; font-weight: 600;">folder Google Drive</a>
+                        <br>2. Copy link file
+                        <br>3. Pilih "Input URL" dan paste link
+                    </div>
+                `;
                 return;
             }
             
+            // Show progress
+            progress.style.display = 'block';
+            progressBar.style.width = '0%';
+            uploadStatus.textContent = 'Membaca file...';
+            preview.innerHTML = '';
+            
             try {
+                // Convert to base64
                 const base64 = await fileToBase64(file);
                 
-                let progress = 0;
-                const progressInterval = setInterval(() => {
-                    progress += 5;
-                    if (progress <= 90) {
-                        const bar = document.getElementById('progressBar');
-                        if (bar) bar.style.width = progress + '%';
-                    }
-                }, 100);
+                // Simulate progress
+                progressBar.style.width = '30%';
+                uploadStatus.textContent = 'Mengirim ke Google Drive...';
                 
+                // Upload to Google Drive via Apps Script
                 const response = await fetch(apiUrl, {
                     method: 'POST',
+                    headers: {
+                        'Content-Type': 'text/plain'
+                    },
                     body: JSON.stringify({
                         action: 'uploadFile',
                         fileName: file.name,
@@ -1281,41 +1214,45 @@
                     })
                 });
                 
-                clearInterval(progressInterval);
-                const bar = document.getElementById('progressBar');
-                if (bar) bar.style.width = '100%';
+                progressBar.style.width = '90%';
                 
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    const driveUrl = result.fileUrl || '';
+                    progressBar.style.width = '100%';
+                    uploadStatus.textContent = 'Upload berhasil!';
                     
-                    document.getElementById('fileSurat').value = driveUrl;
-                    statusDiv.innerHTML = `
-                        <div style="padding: 10px; background: #d4edda; border-radius: 5px; color: #155724;">
-                            ✅ File berhasil diupload: ${file.name}<br>
-                            <a href="${driveUrl}" target="_blank" class="file-link">Lihat di Google Drive</a>
-                        </div>
-                    `;
+                    // Set file URL
+                    document.getElementById('fileSurat').value = result.fileUrl;
+                    
+                    // Show success message
+                    setTimeout(() => {
+                        progress.style.display = 'none';
+                        preview.innerHTML = `
+                            <div style="padding: 10px; background: #d4edda; border-radius: 8px; color: #155724;">
+                                ✅ File berhasil diupload: ${file.name}
+                                <br><a href="${result.fileUrl}" target="_blank" style="color: #155724; font-weight: 600;">Lihat File di Google Drive</a>
+                            </div>
+                        `;
+                    }, 1000);
+                    
                 } else {
                     throw new Error(result.message || 'Upload gagal');
                 }
                 
             } catch (error) {
-                statusDiv.innerHTML = `
-                    <div style="padding: 10px; background: #fff3cd; border-radius: 5px; color: #856404;">
-                        ⚠️ Upload file gagal. Silakan upload manual ke folder Google Drive:<br>
-                        <a href="https://drive.google.com/drive/folders/1cX7Texv-8clOR5i1Si5bUbwvaTcTXcKM?usp=sharing" target="_blank" class="file-link">Buka Folder Google Drive</a><br>
-                        <small>Setelah upload, copy link file dan paste di form</small>
-                    </div>
-                    <div style="margin-top: 10px;">
-                        <label style="font-size: 0.85rem; font-weight: 600;">Link File Google Drive (Manual)</label>
-                        <input type="url" id="manualFileLink" placeholder="https://drive.google.com/file/d/..." 
-                               style="width: 100%; padding: 8px; border: 2px solid #e0e0e0; border-radius: 5px; margin-top: 5px;"
-                               onchange="document.getElementById('fileSurat').value = this.value">
+                console.error('Upload error:', error);
+                progress.style.display = 'none';
+                preview.innerHTML = `
+                    <div style="padding: 10px; background: #fff3cd; border-radius: 8px; color: #856404;">
+                        ⚠️ Upload gagal: ${error.message}
+                        <br><br><strong>Solusi:</strong>
+                        <br>1. Upload manual ke <a href="https://drive.google.com/drive/folders/1cX7Texv-8clOR5i1Si5bUbwvaTcTXcKM?usp=sharing" target="_blank" style="color: #856404; font-weight: 600;">folder ini</a>
+                        <br>2. Klik kanan file → Get link → Copy link
+                        <br>3. Pilih "Input URL" dan paste link tersebut
                     </div>
                 `;
-                console.error('Upload error:', error);
+                event.target.value = '';
             }
         }
 
@@ -1381,13 +1318,34 @@
                 suratKeluar = data;
             }
 
-            await saveLocalData();
+            console.log('💾 Saving data:', { action, activeTab, formData });
             
             try {
-                await syncToSheet(action, activeTab, formData);
-                showAlert(`✅ Data berhasil ${action === 'add' ? 'ditambahkan' : 'diupdate'}`, 'success');
+                saveLocalData();
+                console.log('✅ Data saved locally');
             } catch (error) {
-                showAlert(`⚠️ Data tersimpan lokal, tapi gagal sync: ${error.message}`, 'warning');
+                console.error('❌ Failed to save locally:', error);
+                showAlert('❌ Gagal menyimpan data lokal', 'danger');
+                btn.innerHTML = '💾 Simpan';
+                return;
+            }
+            
+            if (!apiUrl) {
+                showAlert('✅ Data tersimpan lokal. Konfigurasi API untuk sync ke Google Sheets', 'warning');
+                btn.innerHTML = '💾 Simpan';
+                closeModal();
+                renderTable();
+                return;
+            }
+            
+            try {
+                console.log('🔄 Attempting to sync to Google Sheets...');
+                const result = await syncToSheet(action, activeTab, formData);
+                console.log('✅ Sync successful:', result);
+                showAlert(`✅ Data berhasil ${action === 'add' ? 'ditambahkan' : 'diupdate'} dan disinkronkan ke Google Sheets`, 'success');
+            } catch (error) {
+                console.error('⚠️ Sync failed:', error);
+                showAlert(`⚠️ Data tersimpan lokal, tapi gagal sync ke Google Sheets: ${error.message}`, 'warning');
             }
             
             btn.innerHTML = '💾 Simpan';
@@ -1420,13 +1378,23 @@
                 suratKeluar = suratKeluar.filter(s => s.id !== id);
             }
 
-            await saveLocalData();
-            
             try {
-                await syncToSheet('delete', activeTab, deletedItem);
-                showAlert('✅ Data berhasil dihapus', 'success');
+                saveLocalData();
             } catch (error) {
-                showAlert('⚠️ Data terhapus lokal, tapi gagal sync: ' + error.message, 'warning');
+                console.error('Failed to save after delete:', error);
+                showAlert('❌ Gagal menghapus data', 'danger');
+                return;
+            }
+            
+            if (apiUrl) {
+                try {
+                    await syncToSheet('delete', activeTab, deletedItem);
+                    showAlert('✅ Data berhasil dihapus', 'success');
+                } catch (error) {
+                    showAlert('⚠️ Data terhapus lokal, tapi gagal sync: ' + error.message, 'warning');
+                }
+            } else {
+                showAlert('✅ Data berhasil dihapus (lokal)', 'success');
             }
             
             renderTable();
@@ -1523,9 +1491,8 @@
                 tableHTML += `
                     <td>
                         <div class="actions">
-                            ${item.fileSurat ? `<a href="${item.fileSurat}" target="_blank" class="btn btn-info btn-sm" title="Lihat File">📄</a>` : ''}
-                            <button class="btn btn-warning btn-sm" onclick="editSurat('${item.id}')" title="Edit">✏️</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteSurat('${item.id}')" title="Hapus">🗑️</button>
+                            <button class="btn btn-warning btn-sm" onclick="editSurat('${item.id}')">✏️</button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteSurat('${item.id}')">🗑️</button>
                         </div>
                     </td>
                 `;
@@ -1542,6 +1509,44 @@
                 localStorage.removeItem('username');
                 window.location.href = 'https://upt-tpi.github.io/aplikasi-surat/login.html';
             }
+        }
+
+        function showDebugInfo() {
+            const info = `
+=== DEBUG INFORMATION ===
+
+API URL: ${apiUrl || 'BELUM DIKONFIGURASI'}
+Active Tab: ${activeTab}
+Surat Masuk Count: ${suratMasuk.length}
+Surat Keluar Count: ${suratKeluar.length}
+
+Surat Masuk (Local):
+${JSON.stringify(suratMasuk, null, 2)}
+
+Surat Keluar (Local):
+${JSON.stringify(suratKeluar, null, 2)}
+
+=== CARA MEMPERBAIKI CORS ERROR ===
+
+1. Buka Google Apps Script Editor
+2. Klik Deploy → Manage deployments
+3. Edit deployment yang ada
+4. Pastikan:
+   - Execute as: Me (${localStorage.getItem('username') || 'email Anda'})
+   - Who has access: ANYONE (bukan "Anyone with Google account")
+5. Deploy ulang dan copy URL baru
+6. Paste URL di konfigurasi aplikasi ini
+
+=== TROUBLESHOOTING ===
+✓ Data lokal tersimpan: ${suratMasuk.length + suratKeluar.length} data
+✓ LocalStorage working: ${localStorage.getItem('surat-masuk') ? 'YES' : 'NO'}
+✓ API configured: ${apiUrl ? 'YES' : 'NO'}
+
+Buka Console (F12) untuk melihat log detail
+            `;
+            
+            alert(info);
+            console.log(info);
         }
     </script>
 </body>
