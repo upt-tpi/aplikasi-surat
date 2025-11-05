@@ -542,7 +542,7 @@
                 <div class="config-row">
                     <div class="config-group">
                         <label>🔗 Google Apps Script Web App URL</label>
-                        <input type="url" id="apiUrl" placeholder="https://script.google.com/macros/s/...../exec">
+                        <input type="url" id="apiUrl" value="https://script.google.com/macros/s/AKfycbx4XftW56EsHKxvmOS2gi7To5SNZpAM4Pwqx37IpubebFcfwDp-3wJbLMZLbzszWNs9/exec" readonly>
                     </div>
                     <button class="btn btn-info" onclick="testConnection()">
                         <span id="testBtnText">🔌 Test Koneksi</span>
@@ -613,7 +613,8 @@
         let suratMasuk = [];
         let suratKeluar = [];
         let editingId = null;
-        let apiUrl = '';
+        // URL Google Apps Script yang sudah ditetapkan secara permanen
+        const apiUrl = 'https://script.google.com/macros/s/AKfycbx4XftW56EsHKxvmOS2gi7To5SNZpAM4Pwqx37IpubebFcfwDp-3wJbLMZLbzszWNs9/exec';
 
         window.addEventListener('load', () => {
             const isLoggedIn = localStorage.getItem('isLoggedIn');
@@ -622,9 +623,16 @@
                 return;
             }
             
-            loadConfig();
+            // Set URL API ke input field
+            document.getElementById('apiUrl').value = apiUrl;
+            
             loadLocalData();
             renderTable();
+            
+            // Test koneksi otomatis saat halaman dimuat
+            setTimeout(() => {
+                testConnection();
+            }, 1000);
         });
 
         function toggleConfig() {
@@ -637,31 +645,6 @@
             } else {
                 content.classList.add('open');
                 toggle.classList.add('open');
-            }
-        }
-
-        function loadConfig() {
-            try {
-                const configStr = localStorage.getItem('api-config');
-                if (configStr) {
-                    const config = JSON.parse(configStr);
-                    apiUrl = config.apiUrl || '';
-                    document.getElementById('apiUrl').value = apiUrl;
-                    if (apiUrl) {
-                        updateConnectionStatus(true);
-                    }
-                }
-            } catch (error) {
-                console.log('Config belum ada:', error);
-            }
-        }
-
-        function saveConfig() {
-            apiUrl = document.getElementById('apiUrl').value;
-            try {
-                localStorage.setItem('api-config', JSON.stringify({ apiUrl }));
-            } catch (error) {
-                console.error('Error saving config:', error);
             }
         }
 
@@ -712,18 +695,12 @@
         }
 
         async function testConnection() {
-            const url = document.getElementById('apiUrl').value;
-            if (!url) {
-                showAlert('Mohon masukkan URL Google Apps Script terlebih dahulu', 'danger');
-                return;
-            }
-
             const btn = document.getElementById('testBtnText');
             btn.innerHTML = '<div class="loading"></div> Testing...';
 
             try {
-                console.log('Testing URL:', url);
-                const response = await fetch(url + '?action=test', {
+                console.log('Testing URL:', apiUrl);
+                const response = await fetch(apiUrl + '?action=test', {
                     method: 'GET'
                 });
                 
@@ -732,7 +709,6 @@
                 console.log('Response data:', data);
                 
                 if (data.status === 'success') {
-                    saveConfig();
                     updateConnectionStatus(true);
                     showAlert('✅ Koneksi berhasil! Siap sync dengan Google Sheets', 'success');
                 } else {
@@ -748,11 +724,6 @@
         }
 
         async function syncFromSheet() {
-            if (!apiUrl) {
-                showAlert('Mohon konfigurasi URL API terlebih dahulu', 'danger');
-                return;
-            }
-
             const btn = document.getElementById('syncBtnText');
             btn.innerHTML = '<div class="loading"></div> Syncing...';
 
@@ -777,11 +748,6 @@
         }
 
         async function syncToSheet(action, sheetType, rowData) {
-            if (!apiUrl) {
-                console.log('⚠️ API URL belum dikonfigurasi, skip sync');
-                return { status: 'skipped', message: 'API not configured' };
-            }
-
             try {
                 console.log('=== SYNC TO SHEET ===');
                 console.log('Action:', action);
@@ -1174,18 +1140,6 @@
                 return;
             }
             
-            if (!apiUrl) {
-                preview.innerHTML = `
-                    <div style="padding: 10px; background: #fff3cd; border-radius: 8px; color: #856404;">
-                        ⚠️ API belum dikonfigurasi. Silakan:
-                        <br>1. Upload manual ke <a href="https://drive.google.com/drive/folders/1cX7Texv-8clOR5i1Si5bUbwvaTcTXcKM?usp=sharing" target="_blank" style="color: #856404; font-weight: 600;">folder Google Drive</a>
-                        <br>2. Copy link file
-                        <br>3. Pilih "Input URL" dan paste link
-                    </div>
-                `;
-                return;
-            }
-            
             // Show progress
             progress.style.display = 'block';
             progressBar.style.width = '0%';
@@ -1330,14 +1284,6 @@
                 return;
             }
             
-            if (!apiUrl) {
-                showAlert('✅ Data tersimpan lokal. Konfigurasi API untuk sync ke Google Sheets', 'warning');
-                btn.innerHTML = '💾 Simpan';
-                closeModal();
-                renderTable();
-                return;
-            }
-            
             try {
                 console.log('🔄 Attempting to sync to Google Sheets...');
                 const result = await syncToSheet(action, activeTab, formData);
@@ -1386,15 +1332,11 @@
                 return;
             }
             
-            if (apiUrl) {
-                try {
-                    await syncToSheet('delete', activeTab, deletedItem);
-                    showAlert('✅ Data berhasil dihapus', 'success');
-                } catch (error) {
-                    showAlert('⚠️ Data terhapus lokal, tapi gagal sync: ' + error.message, 'warning');
-                }
-            } else {
-                showAlert('✅ Data berhasil dihapus (lokal)', 'success');
+            try {
+                await syncToSheet('delete', activeTab, deletedItem);
+                showAlert('✅ Data berhasil dihapus', 'success');
+            } catch (error) {
+                showAlert('⚠️ Data terhapus lokal, tapi gagal sync: ' + error.message, 'warning');
             }
             
             renderTable();
@@ -1515,16 +1457,16 @@
             const info = `
 === DEBUG INFORMATION ===
 
-API URL: ${apiUrl || 'BELUM DIKONFIGURASI'}
+API URL: ${apiUrl}
 Active Tab: ${activeTab}
 Surat Masuk Count: ${suratMasuk.length}
 Surat Keluar Count: ${suratKeluar.length}
 
 Surat Masuk (Local):
-${JSON.stringify(suratMasuk, null, 2)}
+ ${JSON.stringify(suratMasuk, null, 2)}
 
 Surat Keluar (Local):
-${JSON.stringify(suratKeluar, null, 2)}
+ ${JSON.stringify(suratKeluar, null, 2)}
 
 === CARA MEMPERBAIKI CORS ERROR ===
 
@@ -1540,7 +1482,7 @@ ${JSON.stringify(suratKeluar, null, 2)}
 === TROUBLESHOOTING ===
 ✓ Data lokal tersimpan: ${suratMasuk.length + suratKeluar.length} data
 ✓ LocalStorage working: ${localStorage.getItem('surat-masuk') ? 'YES' : 'NO'}
-✓ API configured: ${apiUrl ? 'YES' : 'NO'}
+✓ API configured: YES (URL sudah ditetapkan permanen)
 
 Buka Console (F12) untuk melihat log detail
             `;
