@@ -501,6 +501,44 @@
             to { transform: rotate(360deg); }
         }
 
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+
+        .pagination button {
+            padding: 8px 12px;
+            border: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #f3f4f6;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            margin: 0 15px;
+            font-size: 0.9rem;
+            color: #6b7280;
+        }
+
         @media (max-width: 768px) {
             .header h1 {
                 font-size: 1.5rem;
@@ -512,6 +550,10 @@
 
             .search-box {
                 width: 100%;
+            }
+
+            .pagination {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -613,7 +655,10 @@
         let suratMasuk = [];
         let suratKeluar = [];
         let editingId = null;
-        // URL Google Apps Script yang sudah ditetapkan secara permanen
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let filteredData = [];
+        
         const apiUrl = 'https://script.google.com/macros/s/AKfycbx4XftW56EsHKxvmOS2gi7To5SNZpAM4Pwqx37IpubebFcfwDp-3wJbLMZLbzszWNs9/exec';
 
         window.addEventListener('load', () => {
@@ -623,13 +668,11 @@
                 return;
             }
             
-            // Set URL API ke input field
             document.getElementById('apiUrl').value = apiUrl;
             
             loadLocalData();
             renderTable();
             
-            // Test koneksi otomatis saat halaman dimuat
             setTimeout(() => {
                 testConnection();
             }, 1000);
@@ -659,6 +702,8 @@
                 if (keluarStr) {
                     suratKeluar = JSON.parse(keluarStr);
                 }
+                
+                filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
             } catch (error) {
                 console.log('Data lokal belum ada:', error);
             }
@@ -735,6 +780,8 @@
                     suratMasuk = data.suratMasuk || [];
                     suratKeluar = data.suratKeluar || [];
                     saveLocalData();
+                    filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
+                    currentPage = 1;
                     renderTable();
                     showAlert('✅ Data berhasil di-sync dari Google Sheets!', 'success');
                 } else {
@@ -794,9 +841,11 @@
 
         function switchTab(tab) {
             activeTab = tab;
+            currentPage = 1;
             document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
             event.target.closest('.tab').classList.add('active');
             document.getElementById('searchInput').value = '';
+            filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
             renderTable();
         }
 
@@ -819,7 +868,7 @@
         }
 
         function renderTable() {
-            const data = activeTab === 'masuk' ? suratMasuk : suratKeluar;
+            const data = filteredData;
             const container = document.getElementById('tableContainer');
 
             if (data.length === 0) {
@@ -835,11 +884,17 @@
                 return;
             }
 
+            const totalPages = Math.ceil(data.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, data.length);
+            const currentData = data.slice(startIndex, endIndex);
+
             let tableHTML = '<div class="table-container"><table><thead><tr>';
             
             if (activeTab === 'masuk') {
                 tableHTML += `
                     <th>No</th>
+                    <th>Tanggal Diterima</th>
                     <th>Tanggal Masuk</th>
                     <th>Nomor Surat</th>
                     <th>Asal Surat</th>
@@ -856,6 +911,7 @@
                     <th>Nomor Surat</th>
                     <th>Tujuan</th>
                     <th>Perihal</th>
+                    <th>Disposisi Surat</th>
                     <th>Ditandatangani Oleh</th>
                     <th>Status</th>
                     <th>Aksi</th>
@@ -864,12 +920,14 @@
 
             tableHTML += '</tr></thead><tbody>';
 
-            data.forEach((item, index) => {
+            currentData.forEach((item, index) => {
+                const actualIndex = startIndex + index + 1;
                 tableHTML += '<tr>';
-                tableHTML += `<td>${index + 1}</td>`;
+                tableHTML += `<td>${actualIndex}</td>`;
                 
                 if (activeTab === 'masuk') {
                     tableHTML += `
+                        <td>${formatDisplayDate(item.tanggalDiterima)}</td>
                         <td>${formatDisplayDate(item.tanggalMasuk)}</td>
                         <td>${item.nomorSurat || '-'}</td>
                         <td>${item.asalSurat || '-'}</td>
@@ -884,6 +942,7 @@
                         <td>${item.nomorSurat || '-'}</td>
                         <td>${item.tujuan || '-'}</td>
                         <td>${item.perihal || '-'}</td>
+                        <td>${item.disposisiSurat || '-'}</td>
                         <td>${item.tandatangani || '-'}</td>
                         <td><span class="badge badge-${getStatusClass(item.status)}">${item.status || '-'}</span></td>
                     `;
@@ -901,8 +960,33 @@
                 tableHTML += '</tr>';
             });
 
-            tableHTML += '</tbody></table></div>';
+            tableHTML += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination">
+                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                        &laquo; Prev
+                    </button>
+                    <span class="pagination-info">
+                        Menampilkan ${startIndex + 1}-${endIndex} dari ${data.length} data
+                    </span>
+                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                        Next &raquo;
+                    </button>
+                </div>
+            `;
+
             container.innerHTML = tableHTML;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            renderTable();
         }
 
         function getStatusClass(status) {
@@ -932,20 +1016,24 @@
             if (activeTab === 'masuk') {
                 fieldsHTML = `
                     <div class="form-group">
+                        <label>Tanggal Diterima *</label>
+                        <input type="date" id="tanggalDiterima">
+                    </div>
+                    <div class="form-group">
                         <label>Tanggal Masuk *</label>
-                        <input type="date" id="tanggalMasuk" required>
+                        <input type="date" id="tanggalMasuk">
                     </div>
                     <div class="form-group">
                         <label>Nomor Surat *</label>
-                        <input type="text" id="nomorSurat" placeholder="Contoh: 001/SRT/2025" required>
+                        <input type="text" id="nomorSurat" placeholder="Contoh: 001/SRT/2025">
                     </div>
                     <div class="form-group">
                         <label>Asal Surat *</label>
-                        <input type="text" id="asalSurat" placeholder="Contoh: Kementerian XYZ" required>
+                        <input type="text" id="asalSurat" placeholder="Contoh: Kementerian XYZ">
                     </div>
                     <div class="form-group">
                         <label>Perihal *</label>
-                        <textarea id="perihal" placeholder="Isi perihal surat" required></textarea>
+                        <textarea id="perihal" placeholder="Isi perihal surat"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Tujuan/Disposisi</label>
@@ -957,7 +1045,7 @@
                     </div>
                     <div class="form-group">
                         <label>Status *</label>
-                        <select id="status" required>
+                        <select id="status">
                             <option value="">Pilih Status</option>
                             <option value="Proses">Proses</option>
                             <option value="Selesai">Selesai</option>
@@ -1003,19 +1091,23 @@
                 fieldsHTML = `
                     <div class="form-group">
                         <label>Tanggal Surat *</label>
-                        <input type="date" id="tanggalSurat" required>
+                        <input type="date" id="tanggalSurat">
                     </div>
                     <div class="form-group">
                         <label>Nomor Surat *</label>
-                        <input type="text" id="nomorSurat" placeholder="Contoh: 001/SRT/2025" required>
+                        <input type="text" id="nomorSurat" placeholder="Contoh: 001/SRT/2025">
                     </div>
                     <div class="form-group">
                         <label>Tujuan *</label>
-                        <input type="text" id="tujuan" placeholder="Contoh: Instansi ABC" required>
+                        <input type="text" id="tujuan" placeholder="Contoh: Instansi ABC">
                     </div>
                     <div class="form-group">
                         <label>Perihal *</label>
-                        <textarea id="perihal" placeholder="Isi perihal surat" required></textarea>
+                        <textarea id="perihal" placeholder="Isi perihal surat"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Disposisi Surat</label>
+                        <textarea id="disposisiSurat" placeholder="Isi disposisi surat"></textarea>
                     </div>
                     <div class="form-group">
                         <label>Ditandatangani Oleh</label>
@@ -1023,7 +1115,7 @@
                     </div>
                     <div class="form-group">
                         <label>Status *</label>
-                        <select id="status" required>
+                        <select id="status">
                             <option value="">Pilih Status</option>
                             <option value="Draft">Draft</option>
                             <option value="Terkirim">Terkirim</option>
@@ -1081,7 +1173,6 @@
                         }
                     });
                     
-                    // Show file preview if exists
                     if (item.fileSurat) {
                         const preview = document.getElementById('filePreview');
                         preview.innerHTML = `
@@ -1126,35 +1217,29 @@
             
             if (!file) return;
             
-            // Validate file type
             if (file.type !== 'application/pdf') {
                 preview.innerHTML = '<div style="padding: 10px; background: #f8d7da; border-radius: 8px; color: #721c24;">❌ Hanya file PDF yang diperbolehkan</div>';
                 event.target.value = '';
                 return;
             }
             
-            // Validate file size (10MB)
             if (file.size > 10 * 1024 * 1024) {
                 preview.innerHTML = '<div style="padding: 10px; background: #f8d7da; border-radius: 8px; color: #721c24;">❌ Ukuran file maksimal 10MB</div>';
                 event.target.value = '';
                 return;
             }
             
-            // Show progress
             progress.style.display = 'block';
             progressBar.style.width = '0%';
             uploadStatus.textContent = 'Membaca file...';
             preview.innerHTML = '';
             
             try {
-                // Convert to base64
                 const base64 = await fileToBase64(file);
                 
-                // Simulate progress
                 progressBar.style.width = '30%';
                 uploadStatus.textContent = 'Mengirim ke Google Drive...';
                 
-                // Upload to Google Drive via Apps Script
                 const response = await fetch(apiUrl, {
                     method: 'POST',
                     headers: {
@@ -1176,10 +1261,8 @@
                     progressBar.style.width = '100%';
                     uploadStatus.textContent = 'Upload berhasil!';
                     
-                    // Set file URL
                     document.getElementById('fileSurat').value = result.fileUrl;
                     
-                    // Show success message
                     setTimeout(() => {
                         progress.style.display = 'none';
                         preview.innerHTML = `
@@ -1229,10 +1312,22 @@
         }
 
         async function saveSurat() {
-            const form = document.getElementById('suratForm');
-            if (!form.checkValidity()) {
-                alert('Mohon lengkapi semua field yang wajib diisi (*)');
-                return;
+            const tanggalDiterima = document.getElementById('tanggalDiterima');
+            const tanggalMasuk = document.getElementById('tanggalMasuk');
+            const tanggalSurat = document.getElementById('tanggalSurat');
+            const nomorSurat = document.getElementById('nomorSurat');
+            const status = document.getElementById('status');
+
+            if (activeTab === 'masuk') {
+                if (!tanggalMasuk.value || !nomorSurat.value || !status.value) {
+                    alert('Mohon lengkapi semua field yang wajib diisi (*)');
+                    return;
+                }
+            } else {
+                if (!tanggalSurat.value || !nomorSurat.value || !status.value) {
+                    alert('Mohon lengkapi semua field yang wajib diisi (*)');
+                    return;
+                }
             }
 
             const btn = document.getElementById('saveBtnText');
@@ -1241,6 +1336,7 @@
             const data = activeTab === 'masuk' ? suratMasuk : suratKeluar;
             const formData = {};
 
+            const form = document.getElementById('suratForm');
             const inputs = form.querySelectorAll('input, textarea, select');
             inputs.forEach(input => {
                 if (input.id) {
@@ -1276,6 +1372,7 @@
             
             try {
                 saveLocalData();
+                filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
                 console.log('✅ Data saved locally');
             } catch (error) {
                 console.error('❌ Failed to save locally:', error);
@@ -1296,6 +1393,7 @@
             
             btn.innerHTML = '💾 Simpan';
             closeModal();
+            currentPage = 1;
             renderTable();
         }
 
@@ -1326,6 +1424,7 @@
 
             try {
                 saveLocalData();
+                filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
             } catch (error) {
                 console.error('Failed to save after delete:', error);
                 showAlert('❌ Gagal menghapus data', 'danger');
@@ -1347,102 +1446,20 @@
             const data = activeTab === 'masuk' ? suratMasuk : suratKeluar;
             
             if (!searchTerm) {
+                filteredData = [...data];
+                currentPage = 1;
                 renderTable();
                 return;
             }
 
-            const filteredData = data.filter(item => {
+            filteredData = data.filter(item => {
                 return Object.values(item).some(val => 
                     String(val).toLowerCase().includes(searchTerm)
                 );
             });
 
-            renderFilteredTable(filteredData);
-        }
-
-        function renderFilteredTable(filteredData) {
-            const container = document.getElementById('tableContainer');
-
-            if (filteredData.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                        </svg>
-                        <h3>Tidak ada hasil</h3>
-                        <p>Tidak ditemukan data yang sesuai dengan pencarian Anda</p>
-                    </div>
-                `;
-                return;
-            }
-
-            let tableHTML = '<div class="table-container"><table><thead><tr>';
-            
-            if (activeTab === 'masuk') {
-                tableHTML += `
-                    <th>No</th>
-                    <th>Tanggal Masuk</th>
-                    <th>Nomor Surat</th>
-                    <th>Asal Surat</th>
-                    <th>Perihal</th>
-                    <th>Tujuan/Disposisi</th>
-                    <th>Tanggal Disposisi</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                `;
-            } else {
-                tableHTML += `
-                    <th>No</th>
-                    <th>Tanggal Surat</th>
-                    <th>Nomor Surat</th>
-                    <th>Tujuan</th>
-                    <th>Perihal</th>
-                    <th>Ditandatangani Oleh</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                `;
-            }
-
-            tableHTML += '</tr></thead><tbody>';
-
-            filteredData.forEach((item, index) => {
-                tableHTML += '<tr>';
-                tableHTML += `<td>${index + 1}</td>`;
-                
-                if (activeTab === 'masuk') {
-                    tableHTML += `
-                        <td>${formatDisplayDate(item.tanggalMasuk)}</td>
-                        <td>${item.nomorSurat || '-'}</td>
-                        <td>${item.asalSurat || '-'}</td>
-                        <td>${item.perihal || '-'}</td>
-                        <td>${item.tujuanDisposisi || '-'}</td>
-                        <td>${formatDisplayDate(item.tanggalDisposisi)}</td>
-                        <td><span class="badge badge-${getStatusClass(item.status)}">${item.status || '-'}</span></td>
-                    `;
-                } else {
-                    tableHTML += `
-                        <td>${formatDisplayDate(item.tanggalSurat)}</td>
-                        <td>${item.nomorSurat || '-'}</td>
-                        <td>${item.tujuan || '-'}</td>
-                        <td>${item.perihal || '-'}</td>
-                        <td>${item.tandatangani || '-'}</td>
-                        <td><span class="badge badge-${getStatusClass(item.status)}">${item.status || '-'}</span></td>
-                    `;
-                }
-
-                tableHTML += `
-                    <td>
-                        <div class="actions">
-                            <button class="btn btn-warning btn-sm" onclick="editSurat('${item.id}')">✏️</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteSurat('${item.id}')">🗑️</button>
-                        </div>
-                    </td>
-                `;
-                tableHTML += '</tr>';
-            });
-
-            tableHTML += '</tbody></table></div>';
-            container.innerHTML = tableHTML;
+            currentPage = 1;
+            renderTable();
         }
 
         function logout() {
@@ -1463,10 +1480,10 @@ Surat Masuk Count: ${suratMasuk.length}
 Surat Keluar Count: ${suratKeluar.length}
 
 Surat Masuk (Local):
- ${JSON.stringify(suratMasuk, null, 2)}
+${JSON.stringify(suratMasuk, null, 2)}
 
 Surat Keluar (Local):
- ${JSON.stringify(suratKeluar, null, 2)}
+${JSON.stringify(suratKeluar, null, 2)}
 
 === CARA MEMPERBAIKI CORS ERROR ===
 
