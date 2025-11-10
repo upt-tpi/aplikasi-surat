@@ -894,7 +894,7 @@
             if (activeTab === 'masuk') {
                 tableHTML += `
                     <th>No</th>
-                    <th>Tanggal Surat</th>
+                    <th>Tanggal Diterima</th>
                     <th>Tanggal Masuk</th>
                     <th>Nomor Surat</th>
                     <th>Asal Surat</th>
@@ -927,7 +927,7 @@
                 
                 if (activeTab === 'masuk') {
                     tableHTML += `
-                        <td>${formatDisplayDate(item.tanggalSurat)}</td>
+                        <td>${formatDisplayDate(item.tanggalDiterima)}</td>
                         <td>${formatDisplayDate(item.tanggalMasuk)}</td>
                         <td>${item.nomorSurat || '-'}</td>
                         <td>${item.asalSurat || '-'}</td>
@@ -1016,8 +1016,12 @@
             if (activeTab === 'masuk') {
                 fieldsHTML = `
                     <div class="form-group">
-                        <label>Tanggal Surat *</label>
-                        <input type="date" id="tanggalSurat">
+                        <label>Tanggal Penerimaan *</label>
+                        <input type="date" id="tanggalPenerimaan">
+                    </div>
+                    <div class="form-group">
+                        <label>Tanggal Diterima *</label>
+                        <input type="date" id="tanggalDiterima">
                     </div>
                     <div class="form-group">
                         <label>Tanggal Masuk *</label>
@@ -1312,7 +1316,7 @@
         }
 
         async function saveSurat() {
-            const tanggalSurat = document.getElementById('tanggalSurat');
+            const tanggalDiterima = document.getElementById('tanggalDiterima');
             const tanggalMasuk = document.getElementById('tanggalMasuk');
             const tanggalSurat = document.getElementById('tanggalSurat');
             const nomorSurat = document.getElementById('nomorSurat');
