@@ -47,8 +47,8 @@
         .table-container { width: 100%; overflow-x: auto; margin-top: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
         table { width: 100%; border-collapse: collapse; background: white; min-width: 800px; }
         thead { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; position: sticky; top: 0; z-index: 5; }
-        th { padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
-        td { padding: 15px; border-bottom: 1px solid #e0e0e0; font-size: 0.9rem; }
+        th { padding: 15px 10px; text-align: left; font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
+        td { padding: 12px 10px; border-bottom: 1px solid #e0e0e0; font-size: 0.85rem; vertical-align: top; }
         tbody tr { transition: all 0.2s; }
         tbody tr:hover { background: #f8f9fa; }
         .actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -273,13 +273,41 @@
         }
 
         function formatDisplayDate(d){
-            if(!d||d==='-')return'-';
+            if(!d||d==='-'||d==='')return'-';
             if(d.includes('/')&&d.length<=10)return d;
+            
+            // Handle various date formats
             try{
-                const dt=new Date(d);
+                let dt;
+                
+                // Check if it's already in DD/MM/YYYY format
+                if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(d))return d;
+                
+                // Try to parse as ISO date or timestamp
+                if(d.includes('T')||d.includes('-')||!isNaN(Date.parse(d))){
+                    dt=new Date(d);
+                }else{
+                    // Try parsing DD-MM-YYYY or other formats
+                    const parts=d.split(/[-\/]/);
+                    if(parts.length===3){
+                        // Assume DD-MM-YYYY or DD/MM/YYYY
+                        dt=new Date(parts[2],parts[1]-1,parts[0]);
+                    }else{
+                        dt=new Date(d);
+                    }
+                }
+                
                 if(isNaN(dt.getTime()))return d;
-                return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`;
-            }catch(e){return d;}
+                
+                const day=String(dt.getDate()).padStart(2,'0');
+                const month=String(dt.getMonth()+1).padStart(2,'0');
+                const year=dt.getFullYear();
+                
+                return `${day}/${month}/${year}`;
+            }catch(e){
+                console.error('Date format error:',e,d);
+                return d;
+            }
         }
 
         function renderTable(){
@@ -291,18 +319,31 @@
             const total=Math.ceil(d.length/itemsPerPage),start=(currentPage-1)*itemsPerPage,end=Math.min(start+itemsPerPage,d.length),cur=d.slice(start,end);
             let h='<div class="table-container"><table><thead><tr>';
             if(activeTab==='masuk'){
-                h+=`<th>No</th><th>Tanggal Surat</th><th>Tanggal Masuk</th><th>Nomor Surat</th><th>Asal Surat</th><th>Perihal</th><th>Tujuan/Disposisi</th><th>Tanggal Disposisi</th><th>Status</th><th>Aksi</th>`;
+                h+=`<th style="width:40px;">No</th><th style="width:100px;">Tgl Surat</th><th style="width:100px;">Tgl Masuk</th><th style="width:150px;">Nomor Surat</th><th style="width:150px;">Asal Surat</th><th style="width:250px;">Perihal</th><th style="width:150px;">Tujuan/Disposisi</th><th style="width:100px;">Tgl Disposisi</th><th style="width:80px;">Status</th><th style="width:120px;">Aksi</th>`;
             }else{
-                h+=`<th>No</th><th>Tanggal Surat</th><th>Nomor Surat</th><th>Tujuan</th><th>Perihal</th><th>Disposisi Surat</th><th>Ditandatangani Oleh</th><th>Status</th><th>Aksi</th>`;
+                h+=`<th style="width:40px;">No</th><th style="width:100px;">Tgl Surat</th><th style="width:150px;">Nomor Surat</th><th style="width:150px;">Tujuan</th><th style="width:250px;">Perihal</th><th style="width:150px;">Disposisi</th><th style="width:150px;">Ditandatangani</th><th style="width:80px;">Status</th><th style="width:120px;">Aksi</th>`;
             }
             h+='</tr></thead><tbody>';
             cur.forEach((i,x)=>{
                 const n=start+x+1;
                 h+=`<tr><td>${n}</td>`;
                 if(activeTab==='masuk'){
-                    h+=`<td>${formatDisplayDate(i.tanggalSurat)}</td><td>${formatDisplayDate(i.tanggalMasuk)}</td><td>${i.nomorSurat||'-'}</td><td>${i.asalSurat||'-'}</td><td style="max-width:300px;white-space:normal;">${i.perihal||'-'}</td><td>${i.tujuanDisposisi||'-'}</td><td>${formatDisplayDate(i.tanggalDisposisi)}</td><td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>`;
+                    h+=`<td style="white-space:nowrap;">${formatDisplayDate(i.tanggalSurat)}</td>
+                        <td style="white-space:nowrap;">${formatDisplayDate(i.tanggalMasuk)}</td>
+                        <td>${i.nomorSurat||'-'}</td>
+                        <td>${i.asalSurat||'-'}</td>
+                        <td style="white-space:normal;word-wrap:break-word;max-width:250px;">${i.perihal||'-'}</td>
+                        <td>${i.tujuanDisposisi||'-'}</td>
+                        <td style="white-space:nowrap;">${formatDisplayDate(i.tanggalDisposisi)}</td>
+                        <td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>`;
                 }else{
-                    h+=`<td>${formatDisplayDate(i.tanggalSurat)}</td><td>${i.nomorSurat||'-'}</td><td>${i.tujuan||'-'}</td><td style="max-width:300px;white-space:normal;">${i.perihal||'-'}</td><td>${i.disposisiSurat||'-'}</td><td>${i.tandatangani||'-'}</td><td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>`;
+                    h+=`<td style="white-space:nowrap;">${formatDisplayDate(i.tanggalSurat)}</td>
+                        <td>${i.nomorSurat||'-'}</td>
+                        <td>${i.tujuan||'-'}</td>
+                        <td style="white-space:normal;word-wrap:break-word;max-width:250px;">${i.perihal||'-'}</td>
+                        <td style="white-space:normal;word-wrap:break-word;">${i.disposisiSurat||'-'}</td>
+                        <td>${i.tandatangani||'-'}</td>
+                        <td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>`;
                 }
                 h+=`<td><div class="actions">${i.fileSurat?`<a href="${i.fileSurat}" target="_blank" class="btn btn-info btn-sm">📄</a>`:''}<button class="btn btn-warning btn-sm" onclick="editSurat('${i.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteSurat('${i.id}')">🗑️</button></div></td></tr>`;
             });
