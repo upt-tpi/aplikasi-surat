@@ -86,6 +86,8 @@
         .pagination button.active { background: #667eea; color: white; border-color: #667eea; }
         .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
         .pagination-info { margin: 0 15px; font-size: 0.9rem; color: #6b7280; }
+        .file-link { color: #667eea; text-decoration: none; font-weight: 500; }
+        .file-link:hover { text-decoration: underline; }
         @media (max-width: 768px) {
             .header h1 { font-size: 1.5rem; }
             .toolbar { flex-direction: column; }
@@ -319,9 +321,28 @@
             const total=Math.ceil(d.length/itemsPerPage),start=(currentPage-1)*itemsPerPage,end=Math.min(start+itemsPerPage,d.length),cur=d.slice(start,end);
             let h='<div class="table-container"><table><thead><tr>';
             if(activeTab==='masuk'){
-                h+=`<th style="width:40px;">No</th><th style="width:100px;">Tgl Surat</th><th style="width:100px;">Tgl Masuk</th><th style="width:150px;">Nomor Surat</th><th style="width:150px;">Asal Surat</th><th style="width:250px;">Perihal</th><th style="width:150px;">Tujuan/Disposisi</th><th style="width:100px;">Tgl Disposisi</th><th style="width:80px;">Status</th><th style="width:120px;">Aksi</th>`;
+                h+=`<th style="width:40px;">No</th>
+                    <th style="width:100px;">Tanggal Surat</th>
+                    <th style="width:100px;">Tanggal Masuk</th>
+                    <th style="width:150px;">Nomor Surat</th>
+                    <th style="width:150px;">Asal Surat</th>
+                    <th style="width:250px;">Perihal</th>
+                    <th style="width:150px;">Tujuan/Disposisi</th>
+                    <th style="width:100px;">Tanggal Disposisi</th>
+                    <th style="width:80px;">Status</th>
+                    <th style="width:120px;">File Surat</th>
+                    <th style="width:100px;">Aksi</th>`;
             }else{
-                h+=`<th style="width:40px;">No</th><th style="width:100px;">Tgl Surat</th><th style="width:150px;">Nomor Surat</th><th style="width:150px;">Tujuan</th><th style="width:250px;">Perihal</th><th style="width:150px;">Disposisi</th><th style="width:150px;">Ditandatangani</th><th style="width:80px;">Status</th><th style="width:120px;">Aksi</th>`;
+                h+=`<th style="width:40px;">No</th>
+                    <th style="width:100px;">Tanggal Surat</th>
+                    <th style="width:150px;">Nomor Surat</th>
+                    <th style="width:150px;">Tujuan</th>
+                    <th style="width:250px;">Perihal</th>
+                    <th style="width:150px;">Disposisi</th>
+                    <th style="width:150px;">Ditandatangani</th>
+                    <th style="width:80px;">Status</th>
+                    <th style="width:120px;">File Surat</th>
+                    <th style="width:100px;">Aksi</th>`;
             }
             h+='</tr></thead><tbody>';
             cur.forEach((i,x)=>{
@@ -335,7 +356,8 @@
                         <td style="white-space:normal;word-wrap:break-word;max-width:250px;">${i.perihal||'-'}</td>
                         <td>${i.tujuanDisposisi||'-'}</td>
                         <td style="white-space:nowrap;">${formatDisplayDate(i.tanggalDisposisi)}</td>
-                        <td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>`;
+                        <td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>
+                        <td>${i.fileSurat?`<a href="${i.fileSurat}" target="_blank" class="file-link">📄 Lihat</a>`:'-'}</td>`;
                 }else{
                     h+=`<td style="white-space:nowrap;">${formatDisplayDate(i.tanggalSurat)}</td>
                         <td>${i.nomorSurat||'-'}</td>
@@ -343,9 +365,13 @@
                         <td style="white-space:normal;word-wrap:break-word;max-width:250px;">${i.perihal||'-'}</td>
                         <td style="white-space:normal;word-wrap:break-word;">${i.disposisiSurat||'-'}</td>
                         <td>${i.tandatangani||'-'}</td>
-                        <td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>`;
+                        <td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>
+                        <td>${i.fileSurat?`<a href="${i.fileSurat}" target="_blank" class="file-link">📄 Lihat</a>`:'-'}</td>`;
                 }
-                h+=`<td><div class="actions">${i.fileSurat?`<a href="${i.fileSurat}" target="_blank" class="btn btn-info btn-sm">📄</a>`:''}<button class="btn btn-warning btn-sm" onclick="editSurat('${i.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteSurat('${i.id}')">🗑️</button></div></td></tr>`;
+                h+=`<td><div class="actions">
+                        <button class="btn btn-warning btn-sm" onclick="editSurat('${i.id}')">✏️</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteSurat('${i.id}')">🗑️</button>
+                    </div></td></tr>`;
             });
             h+=`</tbody></table></div><div class="pagination"><button onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>&laquo; Prev</button><span class="pagination-info">Menampilkan ${start+1}-${end} dari ${d.length} data</span><button onclick="changePage(${currentPage+1})" ${currentPage===total?'disabled':''}>Next &raquo;</button></div>`;
             c.innerHTML=h;
@@ -534,10 +560,10 @@ Surat Masuk Count: ${suratMasuk.length}
 Surat Keluar Count: ${suratKeluar.length}
 
 Surat Masuk (Local):
-${JSON.stringify(suratMasuk,null,2)}
+ ${JSON.stringify(suratMasuk,null,2)}
 
 Surat Keluar (Local):
-${JSON.stringify(suratKeluar,null,2)}
+ ${JSON.stringify(suratKeluar,null,2)}
 
 === TROUBLESHOOTING ===
 ✓ Data lokal tersimpan: ${suratMasuk.length+suratKeluar.length} data
