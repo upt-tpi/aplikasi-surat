@@ -5,556 +5,93 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aplikasi Manajemen Surat</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-        }
-
-        .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .header h1 {
-            font-size: 2rem;
-            margin-bottom: 10px;
-        }
-
-        .config-section {
-            background: #f8f9fa;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .config-header {
-            padding: 15px 30px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-        }
-
-        .config-header:hover {
-            background: #e9ecef;
-        }
-
-        .config-header h3 {
-            font-size: 1rem;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .config-toggle {
-            font-size: 1.2rem;
-            transition: transform 0.3s;
-        }
-
-        .config-toggle.open {
-            transform: rotate(180deg);
-        }
-
-        .config-content {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease-out;
-        }
-
-        .config-content.open {
-            max-height: 500px;
-            padding: 20px 30px;
-        }
-
-        .config-row {
-            display: flex;
-            gap: 15px;
-            align-items: flex-end;
-            flex-wrap: wrap;
-        }
-
-        .config-group {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .config-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
-        }
-
-        .config-group input {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        .sync-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            font-weight: 600;
-        }
-
-        .sync-status.connected {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .sync-status.disconnected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .tabs {
-            display: flex;
-            background: #f8f9fa;
-            border-bottom: 2px solid #e0e0e0;
-        }
-
-        .tab {
-            flex: 1;
-            padding: 20px;
-            text-align: center;
-            cursor: pointer;
-            background: #f8f9fa;
-            border: none;
-            font-size: 1rem;
-            font-weight: 600;
-            color: #666;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .tab:hover {
-            background: #e9ecef;
-        }
-
-        .tab.active {
-            background: white;
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            gap: 15px;
-            flex-wrap: wrap;
-        }
-
-        .search-box {
-            display: flex;
-            align-items: center;
-            background: #f8f9fa;
-            padding: 10px 15px;
-            border-radius: 8px;
-            flex: 1;
-            min-width: 250px;
-        }
-
-        .search-box input {
-            border: none;
-            background: none;
-            outline: none;
-            width: 100%;
-            margin-left: 10px;
-            font-size: 0.95rem;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.95rem;
-            font-weight: 600;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-primary:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
-        }
-
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-warning {
-            background: #ffc107;
-            color: #333;
-        }
-
-        .btn-secondary {
-            background: #6c757d;
-            color: white;
-        }
-
-        .btn-info {
-            background: #17a2b8;
-            color: white;
-        }
-
-        .btn-sm {
-            padding: 6px 12px;
-            font-size: 0.85rem;
-        }
-
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            margin-top: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            min-width: 800px;
-        }
-
-        thead {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            position: sticky;
-            top: 0;
-            z-index: 5;
-        }
-
-        th {
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        td {
-            padding: 15px;
-            border-bottom: 1px solid #e0e0e0;
-            font-size: 0.9rem;
-            white-space: nowrap;
-        }
-
-        tbody tr {
-            transition: all 0.2s;
-        }
-
-        tbody tr:hover {
-            background: #f8f9fa;
-        }
-
-        .actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 700px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .modal-header h2 {
-            font-size: 1.5rem;
-        }
-
-        .close-btn {
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            width: 35px;
-            height: 35px;
-            border-radius: 50%;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s;
-        }
-
-        .close-btn:hover {
-            background: rgba(255,255,255,0.3);
-        }
-
-        .modal-body {
-            padding: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-            font-size: 0.9rem;
-        }
-
-        .form-group input,
-        .form-group textarea,
-        .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            transition: all 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group textarea:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .form-group textarea {
-            resize: vertical;
-            min-height: 100px;
-        }
-
-        .modal-footer {
-            padding: 20px 30px;
-            background: #f8f9fa;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #999;
-        }
-
-        .empty-state svg {
-            width: 80px;
-            height: 80px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .badge-success {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .badge-warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .badge-danger {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-        }
-
-        .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-        }
-
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .alert-danger {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border: 1px solid #ffeaa7;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 16px;
-            height: 16px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .pagination {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-top: 20px;
-            gap: 5px;
-        }
-
-        .pagination button {
-            padding: 8px 12px;
-            border: 1px solid #e0e0e0;
-            background: white;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 0.9rem;
-        }
-
-        .pagination button:hover:not(:disabled) {
-            background: #f3f4f6;
-        }
-
-        .pagination button.active {
-            background: #667eea;
-            color: white;
-            border-color: #667eea;
-        }
-
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination-info {
-            margin: 0 15px;
-            font-size: 0.9rem;
-            color: #6b7280;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        .header h1 { font-size: 2rem; margin-bottom: 10px; }
+        .config-section { background: #f8f9fa; border-bottom: 2px solid #e0e0e0; }
+        .config-header { padding: 15px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
+        .config-header:hover { background: #e9ecef; }
+        .config-header h3 { font-size: 1rem; color: #333; display: flex; align-items: center; gap: 10px; }
+        .config-toggle { font-size: 1.2rem; transition: transform 0.3s; }
+        .config-toggle.open { transform: rotate(180deg); }
+        .config-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
+        .config-content.open { max-height: 500px; padding: 20px 30px; }
+        .config-row { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
+        .config-group { flex: 1; min-width: 250px; }
+        .config-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 0.9rem; }
+        .config-group input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.9rem; }
+        .sync-status { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
+        .sync-status.connected { background: #d4edda; color: #155724; }
+        .sync-status.disconnected { background: #f8d7da; color: #721c24; }
+        .tabs { display: flex; background: #f8f9fa; border-bottom: 2px solid #e0e0e0; }
+        .tab { flex: 1; padding: 20px; text-align: center; cursor: pointer; background: #f8f9fa; border: none; font-size: 1rem; font-weight: 600; color: #666; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .tab:hover { background: #e9ecef; }
+        .tab.active { background: white; color: #667eea; border-bottom: 3px solid #667eea; }
+        .content { padding: 30px; }
+        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
+        .search-box { display: flex; align-items: center; background: #f8f9fa; padding: 10px 15px; border-radius: 8px; flex: 1; min-width: 250px; }
+        .search-box input { border: none; background: none; outline: none; width: 100%; margin-left: 10px; font-size: 0.95rem; }
+        .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-success { background: #28a745; color: white; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-warning { background: #ffc107; color: #333; }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-info { background: #17a2b8; color: white; }
+        .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
+        .table-container { width: 100%; overflow-x: auto; margin-top: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; background: white; min-width: 800px; }
+        thead { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; position: sticky; top: 0; z-index: 5; }
+        th { padding: 15px; text-align: left; font-weight: 600; font-size: 0.9rem; white-space: nowrap; }
+        td { padding: 15px; border-bottom: 1px solid #e0e0e0; font-size: 0.9rem; }
+        tbody tr { transition: all 0.2s; }
+        tbody tr:hover { background: #f8f9fa; }
+        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 15px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .modal-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { font-size: 1.5rem; }
+        .close-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; font-size: 1.5rem; }
+        .close-btn:hover { background: rgba(255,255,255,0.3); }
+        .modal-body { padding: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 0.9rem; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; transition: all 0.3s; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .modal-footer { padding: 20px 30px; background: #f8f9fa; display: flex; justify-content: flex-end; gap: 10px; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state svg { width: 80px; height: 80px; margin-bottom: 20px; opacity: 0.5; }
+        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
+        .badge-success { background: #d4edda; color: #155724; }
+        .badge-warning { background: #fff3cd; color: #856404; }
+        .badge-danger { background: #f8d7da; color: #721c24; }
+        .badge-secondary { background: #e2e3e5; color: #383d41; }
+        .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; }
+        .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+        .loading { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .pagination { display: flex; justify-content: center; align-items: center; margin-top: 20px; gap: 5px; }
+        .pagination button { padding: 8px 12px; border: 1px solid #e0e0e0; background: white; border-radius: 5px; cursor: pointer; font-size: 0.9rem; }
+        .pagination button:hover:not(:disabled) { background: #f3f4f6; }
+        .pagination button.active { background: #667eea; color: white; border-color: #667eea; }
+        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .pagination-info { margin: 0 15px; font-size: 0.9rem; color: #6b7280; }
         @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.5rem;
-            }
-
-            .toolbar {
-                flex-direction: column;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .pagination {
-                flex-wrap: wrap;
-            }
+            .header h1 { font-size: 1.5rem; }
+            .toolbar { flex-direction: column; }
+            .search-box { width: 100%; }
+            .pagination { flex-wrap: wrap; }
+            td, th { white-space: normal; word-wrap: break-word; }
         }
     </style>
 </head>
@@ -566,9 +103,7 @@
                     <h1>📧 Aplikasi Manajemen Surat</h1>
                     <p>Kelola Surat Masuk dan Surat Keluar dengan Integrasi Google Sheets</p>
                 </div>
-                <button class="btn btn-danger" onclick="logout()">
-                    <span>🚪</span> Logout
-                </button>
+                <button class="btn btn-danger" onclick="logout()"><span>🚪</span> Logout</button>
             </div>
         </div>
 
@@ -578,54 +113,36 @@
                 <span class="config-toggle" id="configToggle">▼</span>
             </div>
             <div class="config-content" id="configContent">
-                <div class="alert alert-warning">
-                    ⚠️ <strong>Penting:</strong> Deploy Google Apps Script dengan akses <strong>"Anyone"</strong> (bukan "Anyone with Google account")
-                </div>
+                <div class="alert alert-warning">⚠️ <strong>Penting:</strong> Deploy Google Apps Script dengan akses <strong>"Anyone"</strong></div>
                 <div class="config-row">
                     <div class="config-group">
                         <label>🔗 Google Apps Script Web App URL</label>
                         <input type="url" id="apiUrl" value="https://script.google.com/macros/s/AKfycbx4XftW56EsHKxvmOS2gi7To5SNZpAM4Pwqx37IpubebFcfwDp-3wJbLMZLbzszWNs9/exec" readonly>
                     </div>
-                    <button class="btn btn-info" onclick="testConnection()">
-                        <span id="testBtnText">🔌 Test Koneksi</span>
-                    </button>
-                    <button class="btn btn-success" onclick="syncFromSheet()">
-                        <span id="syncBtnText">🔄 Sync Data</span>
-                    </button>
+                    <button class="btn btn-info" onclick="testConnection()"><span id="testBtnText">🔌 Test Koneksi</span></button>
+                    <button class="btn btn-success" onclick="syncFromSheet()"><span id="syncBtnText">🔄 Sync Data</span></button>
                 </div>
                 <div style="margin-top: 15px;">
-                    <div id="connectionStatus" class="sync-status disconnected">
-                        <span>●</span> Belum Terhubung
-                    </div>
+                    <div id="connectionStatus" class="sync-status disconnected"><span>●</span> Belum Terhubung</div>
                 </div>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('masuk')">
-                <span>📥</span> Surat Masuk
-            </button>
-            <button class="tab" onclick="switchTab('keluar')">
-                <span>📤</span> Surat Keluar
-            </button>
+            <button class="tab active" onclick="switchTab('masuk')"><span>📥</span> Surat Masuk</button>
+            <button class="tab" onclick="switchTab('keluar')"><span>📤</span> Surat Keluar</button>
         </div>
 
         <div class="content">
             <div id="alertContainer"></div>
-            
             <div class="toolbar">
                 <div class="search-box">
                     <span>🔍</span>
                     <input type="text" id="searchInput" placeholder="Cari surat..." onkeyup="filterTable()">
                 </div>
-                <button class="btn btn-secondary btn-sm" onclick="showDebugInfo()">
-                    🐛 Debug
-                </button>
-                <button class="btn btn-primary" onclick="openModal('add')">
-                    <span>➕</span> Tambah Surat
-                </button>
+                <button class="btn btn-secondary btn-sm" onclick="showDebugInfo()">🐛 Debug</button>
+                <button class="btn btn-primary" onclick="openModal('add')"><span>➕</span> Tambah Surat</button>
             </div>
-
             <div id="tableContainer"></div>
         </div>
     </div>
@@ -637,846 +154,338 @@
                 <button class="close-btn" onclick="closeModal()">✕</button>
             </div>
             <div class="modal-body">
-                <form id="suratForm">
-                    <div id="formFields"></div>
-                </form>
+                <form id="suratForm"><div id="formFields"></div></form>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
-                <button class="btn btn-success" onclick="saveSurat()">
-                    <span id="saveBtnText">💾 Simpan</span>
-                </button>
+                <button class="btn btn-success" onclick="saveSurat()"><span id="saveBtnText">💾 Simpan</span></button>
             </div>
         </div>
     </div>
 
     <script>
-        let activeTab = 'masuk';
-        let suratMasuk = [];
-        let suratKeluar = [];
-        let editingId = null;
-        let currentPage = 1;
-        const itemsPerPage = 10;
-        let filteredData = [];
-        
-        const apiUrl = 'https://script.google.com/macros/s/AKfycbx4XftW56EsHKxvmOS2gi7To5SNZpAM4Pwqx37IpubebFcfwDp-3wJbLMZLbzszWNs9/exec';
+        let activeTab='masuk',suratMasuk=[],suratKeluar=[],editingId=null,currentPage=1;
+        const itemsPerPage=10,apiUrl='https://script.google.com/macros/s/AKfycbx4XftW56EsHKxvmOS2gi7To5SNZpAM4Pwqx37IpubebFcfwDp-3wJbLMZLbzszWNs9/exec';
+        let filteredData=[];
 
-        window.addEventListener('load', () => {
-            const isLoggedIn = localStorage.getItem('isLoggedIn');
-            if (isLoggedIn !== 'true') {
-                window.location.href = 'https://upt-tpi.github.io/aplikasi-surat/login.html';
+        window.addEventListener('load',()=>{
+            if(localStorage.getItem('isLoggedIn')!=='true'){
+                window.location.href='https://upt-tpi.github.io/aplikasi-surat/login.html';
                 return;
             }
-            
-            document.getElementById('apiUrl').value = apiUrl;
-            
+            document.getElementById('apiUrl').value=apiUrl;
             loadLocalData();
             renderTable();
-            
-            setTimeout(() => {
-                testConnection();
-            }, 1000);
+            setTimeout(()=>testConnection(),1000);
         });
 
-        function toggleConfig() {
-            const content = document.getElementById('configContent');
-            const toggle = document.getElementById('configToggle');
-            
-            if (content.classList.contains('open')) {
-                content.classList.remove('open');
-                toggle.classList.remove('open');
-            } else {
-                content.classList.add('open');
-                toggle.classList.add('open');
-            }
+        function toggleConfig(){
+            const c=document.getElementById('configContent'),t=document.getElementById('configToggle');
+            if(c.classList.contains('open')){c.classList.remove('open');t.classList.remove('open');}
+            else{c.classList.add('open');t.classList.add('open');}
         }
 
-        function loadLocalData() {
-            try {
-                const masukStr = localStorage.getItem('surat-masuk');
-                const keluarStr = localStorage.getItem('surat-keluar');
-                
-                if (masukStr) {
-                    suratMasuk = JSON.parse(masukStr);
-                }
-                if (keluarStr) {
-                    suratKeluar = JSON.parse(keluarStr);
-                }
-                
-                filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
-            } catch (error) {
-                console.log('Data lokal belum ada:', error);
-            }
+        function loadLocalData(){
+            try{
+                const m=localStorage.getItem('surat-masuk'),k=localStorage.getItem('surat-keluar');
+                if(m)suratMasuk=JSON.parse(m);
+                if(k)suratKeluar=JSON.parse(k);
+                filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
+            }catch(e){console.log('Data lokal belum ada:',e);}
         }
 
-        function saveLocalData() {
-            try {
-                localStorage.setItem('surat-masuk', JSON.stringify(suratMasuk));
-                localStorage.setItem('surat-keluar', JSON.stringify(suratKeluar));
+        function saveLocalData(){
+            try{
+                localStorage.setItem('surat-masuk',JSON.stringify(suratMasuk));
+                localStorage.setItem('surat-keluar',JSON.stringify(suratKeluar));
                 console.log('✅ Data tersimpan lokal');
-            } catch (error) {
-                console.error('❌ Error saving local data:', error);
-                throw error;
-            }
+            }catch(e){console.error('❌ Error:',e);throw e;}
         }
 
-        function updateConnectionStatus(connected) {
-            const status = document.getElementById('connectionStatus');
-            if (connected) {
-                status.className = 'sync-status connected';
-                status.innerHTML = '<span>●</span> Terhubung ke Google Sheets';
-            } else {
-                status.className = 'sync-status disconnected';
-                status.innerHTML = '<span>●</span> Belum Terhubung';
-            }
+        function updateConnectionStatus(c){
+            const s=document.getElementById('connectionStatus');
+            s.className=c?'sync-status connected':'sync-status disconnected';
+            s.innerHTML=c?'<span>●</span> Terhubung ke Google Sheets':'<span>●</span> Belum Terhubung';
         }
 
-        function showAlert(message, type = 'info') {
-            const container = document.getElementById('alertContainer');
-            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
-            setTimeout(() => {
-                container.innerHTML = '';
-            }, 5000);
+        function showAlert(m,t='info'){
+            const c=document.getElementById('alertContainer');
+            c.innerHTML=`<div class="alert alert-${t}">${m}</div>`;
+            setTimeout(()=>c.innerHTML='',5000);
         }
 
-        async function testConnection() {
-            const btn = document.getElementById('testBtnText');
-            btn.innerHTML = '<div class="loading"></div> Testing...';
-
-            try {
-                console.log('Testing URL:', apiUrl);
-                const response = await fetch(apiUrl + '?action=test', {
-                    method: 'GET'
-                });
-                
-                console.log('Response status:', response.status);
-                const data = await response.json();
-                console.log('Response data:', data);
-                
-                if (data.status === 'success') {
+        async function testConnection(){
+            const b=document.getElementById('testBtnText');
+            b.innerHTML='<div class="loading"></div> Testing...';
+            try{
+                const r=await fetch(apiUrl+'?action=test'),d=await r.json();
+                if(d.status==='success'){
                     updateConnectionStatus(true);
-                    showAlert('✅ Koneksi berhasil! Siap sync dengan Google Sheets', 'success');
-                } else {
-                    throw new Error(data.message || 'Koneksi gagal');
-                }
-            } catch (error) {
-                console.error('Test connection error:', error);
+                    showAlert('✅ Koneksi berhasil!','success');
+                }else throw new Error(d.message||'Koneksi gagal');
+            }catch(e){
+                console.error(e);
                 updateConnectionStatus(false);
-                showAlert('❌ Koneksi gagal: ' + error.message, 'danger');
-            } finally {
-                btn.innerHTML = '🔌 Test Koneksi';
-            }
+                showAlert('❌ Koneksi gagal: '+e.message,'danger');
+            }finally{b.innerHTML='🔌 Test Koneksi';}
         }
 
-        async function syncFromSheet() {
-            const btn = document.getElementById('syncBtnText');
-            btn.innerHTML = '<div class="loading"></div> Syncing...';
-
-            try {
-                const response = await fetch(apiUrl + '?action=getData');
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    suratMasuk = data.suratMasuk || [];
-                    suratKeluar = data.suratKeluar || [];
+        async function syncFromSheet(){
+            const b=document.getElementById('syncBtnText');
+            b.innerHTML='<div class="loading"></div> Syncing...';
+            try{
+                const r=await fetch(apiUrl+'?action=getData'),d=await r.json();
+                if(d.status==='success'){
+                    suratMasuk=d.suratMasuk||[];
+                    suratKeluar=d.suratKeluar||[];
                     saveLocalData();
-                    filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
-                    currentPage = 1;
+                    filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
+                    currentPage=1;
                     renderTable();
-                    showAlert('✅ Data berhasil di-sync dari Google Sheets!', 'success');
-                } else {
-                    throw new Error(data.message || 'Sync gagal');
-                }
-            } catch (error) {
-                showAlert('❌ Sync gagal: ' + error.message, 'danger');
-            } finally {
-                btn.innerHTML = '🔄 Sync Data';
-            }
+                    showAlert('✅ Data berhasil di-sync!','success');
+                }else throw new Error(d.message||'Sync gagal');
+            }catch(e){showAlert('❌ Sync gagal: '+e.message,'danger');}
+            finally{b.innerHTML='🔄 Sync Data';}
         }
 
-        async function syncToSheet(action, sheetType, rowData) {
-            try {
-                console.log('=== SYNC TO SHEET ===');
-                console.log('Action:', action);
-                console.log('Sheet Type:', sheetType);
-                console.log('Row Data:', rowData);
-                
-                const payload = {
-                    action: action,
-                    sheetType: sheetType,
-                    data: rowData
-                };
-                
-                console.log('Sending payload:', JSON.stringify(payload, null, 2));
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify(payload)
+        async function syncToSheet(a,s,r){
+            try{
+                const p={action:a,sheetType:s,data:r};
+                const res=await fetch(apiUrl,{
+                    method:'POST',
+                    headers:{'Content-Type':'text/plain'},
+                    body:JSON.stringify(p)
                 });
-                
-                console.log('Response status:', response.status);
-                
-                const responseText = await response.text();
-                console.log('Response text:', responseText);
-                
-                const result = JSON.parse(responseText);
-                console.log('Parsed result:', result);
-                
-                if (result.status !== 'success') {
-                    throw new Error(result.message || 'Sync gagal');
-                }
-                
-                console.log('=== SYNC SUCCESS ===');
-                return result;
-                
-            } catch (error) {
-                console.error('=== SYNC ERROR ===');
-                console.error('Error:', error);
-                throw error;
-            }
+                const t=await res.text(),d=JSON.parse(t);
+                if(d.status!=='success')throw new Error(d.message||'Sync gagal');
+                return d;
+            }catch(e){console.error(e);throw e;}
         }
 
-        function switchTab(tab) {
-            activeTab = tab;
-            currentPage = 1;
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        function switchTab(t){
+            activeTab=t;
+            currentPage=1;
+            document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
             event.target.closest('.tab').classList.add('active');
-            document.getElementById('searchInput').value = '';
-            filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
+            document.getElementById('searchInput').value='';
+            filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
             renderTable();
         }
 
-        function formatDisplayDate(dateString) {
-            if (!dateString || dateString === '-') return '-';
-            if (dateString.includes('/') && dateString.length <= 10) return dateString;
-            
-            try {
-                const date = new Date(dateString);
-                if (isNaN(date.getTime())) return dateString;
-                
-                const day = String(date.getDate()).padStart(2, '0');
-                const month = String(date.getMonth() + 1).padStart(2, '0');
-                const year = date.getFullYear();
-                
-                return `${day}/${month}/${year}`;
-            } catch (e) {
-                return dateString;
-            }
+        function formatDisplayDate(d){
+            if(!d||d==='-')return'-';
+            if(d.includes('/')&&d.length<=10)return d;
+            try{
+                const dt=new Date(d);
+                if(isNaN(dt.getTime()))return d;
+                return `${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')}/${dt.getFullYear()}`;
+            }catch(e){return d;}
         }
 
-        function renderTable() {
-            const data = filteredData;
-            const container = document.getElementById('tableContainer');
-
-            if (data.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
-                        <h3>Belum ada data</h3>
-                        <p>Klik "Tambah Surat" atau "Sync Data" untuk mulai</p>
-                    </div>
-                `;
+        function renderTable(){
+            const d=filteredData,c=document.getElementById('tableContainer');
+            if(d.length===0){
+                c.innerHTML='<div class="empty-state"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><h3>Belum ada data</h3><p>Klik "Tambah Surat" atau "Sync Data"</p></div>';
                 return;
             }
-
-            const totalPages = Math.ceil(data.length / itemsPerPage);
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, data.length);
-            const currentData = data.slice(startIndex, endIndex);
-
-            let tableHTML = '<div class="table-container"><table><thead><tr>';
-            
-            if (activeTab === 'masuk') {
-                tableHTML += `
-                    <th>No</th>
-                    <th>Tanggal Diterima</th>
-                    <th>Tanggal Masuk</th>
-                    <th>Nomor Surat</th>
-                    <th>Asal Surat</th>
-                    <th>Perihal</th>
-                    <th>Tujuan/Disposisi</th>
-                    <th>Tanggal Disposisi</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                `;
-            } else {
-                tableHTML += `
-                    <th>No</th>
-                    <th>Tanggal Surat</th>
-                    <th>Nomor Surat</th>
-                    <th>Tujuan</th>
-                    <th>Perihal</th>
-                    <th>Disposisi Surat</th>
-                    <th>Ditandatangani Oleh</th>
-                    <th>Status</th>
-                    <th>Aksi</th>
-                `;
+            const total=Math.ceil(d.length/itemsPerPage),start=(currentPage-1)*itemsPerPage,end=Math.min(start+itemsPerPage,d.length),cur=d.slice(start,end);
+            let h='<div class="table-container"><table><thead><tr>';
+            if(activeTab==='masuk'){
+                h+=`<th>No</th><th>Tanggal Surat</th><th>Tanggal Masuk</th><th>Nomor Surat</th><th>Asal Surat</th><th>Perihal</th><th>Tujuan/Disposisi</th><th>Tanggal Disposisi</th><th>Status</th><th>Aksi</th>`;
+            }else{
+                h+=`<th>No</th><th>Tanggal Surat</th><th>Nomor Surat</th><th>Tujuan</th><th>Perihal</th><th>Disposisi Surat</th><th>Ditandatangani Oleh</th><th>Status</th><th>Aksi</th>`;
             }
-
-            tableHTML += '</tr></thead><tbody>';
-
-            currentData.forEach((item, index) => {
-                const actualIndex = startIndex + index + 1;
-                tableHTML += '<tr>';
-                tableHTML += `<td>${actualIndex}</td>`;
-                
-                if (activeTab === 'masuk') {
-                    tableHTML += `
-                        <td>${formatDisplayDate(item.tanggalDiterima)}</td>
-                        <td>${formatDisplayDate(item.tanggalMasuk)}</td>
-                        <td>${item.nomorSurat || '-'}</td>
-                        <td>${item.asalSurat || '-'}</td>
-                        <td>${item.perihal || '-'}</td>
-                        <td>${item.tujuanDisposisi || '-'}</td>
-                        <td>${formatDisplayDate(item.tanggalDisposisi)}</td>
-                        <td><span class="badge badge-${getStatusClass(item.status)}">${item.status || '-'}</span></td>
-                    `;
-                } else {
-                    tableHTML += `
-                        <td>${formatDisplayDate(item.tanggalSurat)}</td>
-                        <td>${item.nomorSurat || '-'}</td>
-                        <td>${item.tujuan || '-'}</td>
-                        <td>${item.perihal || '-'}</td>
-                        <td>${item.disposisiSurat || '-'}</td>
-                        <td>${item.tandatangani || '-'}</td>
-                        <td><span class="badge badge-${getStatusClass(item.status)}">${item.status || '-'}</span></td>
-                    `;
+            h+='</tr></thead><tbody>';
+            cur.forEach((i,x)=>{
+                const n=start+x+1;
+                h+=`<tr><td>${n}</td>`;
+                if(activeTab==='masuk'){
+                    h+=`<td>${formatDisplayDate(i.tanggalSurat)}</td><td>${formatDisplayDate(i.tanggalMasuk)}</td><td>${i.nomorSurat||'-'}</td><td>${i.asalSurat||'-'}</td><td style="max-width:300px;white-space:normal;">${i.perihal||'-'}</td><td>${i.tujuanDisposisi||'-'}</td><td>${formatDisplayDate(i.tanggalDisposisi)}</td><td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>`;
+                }else{
+                    h+=`<td>${formatDisplayDate(i.tanggalSurat)}</td><td>${i.nomorSurat||'-'}</td><td>${i.tujuan||'-'}</td><td style="max-width:300px;white-space:normal;">${i.perihal||'-'}</td><td>${i.disposisiSurat||'-'}</td><td>${i.tandatangani||'-'}</td><td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>`;
                 }
-
-                tableHTML += `
-                    <td>
-                        <div class="actions">
-                            ${item.fileSurat ? `<a href="${item.fileSurat}" target="_blank" class="btn btn-info btn-sm" title="Lihat File">📄</a>` : ''}
-                            <button class="btn btn-warning btn-sm" onclick="editSurat('${item.id}')" title="Edit">✏️</button>
-                            <button class="btn btn-danger btn-sm" onclick="deleteSurat('${item.id}')" title="Hapus">🗑️</button>
-                        </div>
-                    </td>
-                `;
-                tableHTML += '</tr>';
+                h+=`<td><div class="actions">${i.fileSurat?`<a href="${i.fileSurat}" target="_blank" class="btn btn-info btn-sm">📄</a>`:''}<button class="btn btn-warning btn-sm" onclick="editSurat('${i.id}')">✏️</button><button class="btn btn-danger btn-sm" onclick="deleteSurat('${i.id}')">🗑️</button></div></td></tr>`;
             });
-
-            tableHTML += `
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div class="pagination">
-                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
-                        &laquo; Prev
-                    </button>
-                    <span class="pagination-info">
-                        Menampilkan ${startIndex + 1}-${endIndex} dari ${data.length} data
-                    </span>
-                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
-                        Next &raquo;
-                    </button>
-                </div>
-            `;
-
-            container.innerHTML = tableHTML;
+            h+=`</tbody></table></div><div class="pagination"><button onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>&laquo; Prev</button><span class="pagination-info">Menampilkan ${start+1}-${end} dari ${d.length} data</span><button onclick="changePage(${currentPage+1})" ${currentPage===total?'disabled':''}>Next &raquo;</button></div>`;
+            c.innerHTML=h;
         }
 
-        function changePage(page) {
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-            if (page < 1 || page > totalPages) return;
-            
-            currentPage = page;
+        function changePage(p){
+            const t=Math.ceil(filteredData.length/itemsPerPage);
+            if(p<1||p>t)return;
+            currentPage=p;
             renderTable();
         }
 
-        function getStatusClass(status) {
-            if (!status) return 'secondary';
-            const s = status.toLowerCase();
-            if (s.includes('selesai') || s.includes('terkirim')) return 'success';
-            if (s.includes('proses') || s.includes('draft')) return 'warning';
-            return 'danger';
+        function getStatusClass(s){
+            if(!s)return'secondary';
+            const l=s.toLowerCase();
+            if(l.includes('selesai')||l.includes('terkirim'))return'success';
+            if(l.includes('proses')||l.includes('draft'))return'warning';
+            return'danger';
         }
 
-        function openModal(mode, id = null) {
-            const modal = document.getElementById('modal');
-            const modalTitle = document.getElementById('modalTitle');
-            const formFields = document.getElementById('formFields');
-            
-            editingId = id;
+        function openModal(m,id=null){
+            const modal=document.getElementById('modal'),title=document.getElementById('modalTitle'),fields=document.getElementById('formFields');
+            editingId=id;
             modal.classList.add('active');
-
-            if (mode === 'add') {
-                modalTitle.textContent = `Tambah Surat ${activeTab === 'masuk' ? 'Masuk' : 'Keluar'}`;
-            } else {
-                modalTitle.textContent = `Edit Surat ${activeTab === 'masuk' ? 'Masuk' : 'Keluar'}`;
+            title.textContent=m==='add'?`Tambah Surat ${activeTab==='masuk'?'Masuk':'Keluar'}`:`Edit Surat ${activeTab==='masuk'?'Masuk':'Keluar'}`;
+            let f='';
+            if(activeTab==='masuk'){
+                f=`<div class="form-group"><label>Tanggal Surat *</label><input type="date" id="tanggalSurat"></div>
+                <div class="form-group"><label>Tanggal Masuk *</label><input type="date" id="tanggalMasuk"></div>
+                <div class="form-group"><label>Nomor Surat *</label><input type="text" id="nomorSurat" placeholder="Contoh: 001/5/B67/2025"></div>
+                <div class="form-group"><label>Asal Surat *</label><input type="text" id="asalSurat" placeholder="Contoh: Kabupaten"></div>
+                <div class="form-group"><label>Perihal *</label><textarea id="perihal"></textarea></div>
+                <div class="form-group"><label>Tujuan/Disposisi</label><input type="text" id="tujuanDisposisi"></div>
+                <div class="form-group"><label>Tanggal Disposisi</label><input type="date" id="tanggalDisposisi"></div>
+                <div class="form-group"><label>Status *</label><select id="status"><option value="">Pilih Status</option><option value="Selesai">Selesai</option><option value="Proses">Proses</option><option value="Pending">Pending</option></select></div>
+                <div class="form-group"><label>File Surat PDF (URL)</label><input type="url" id="fileSurat" placeholder="https://drive.google.com/file/d/..."></div>`;
+            }else{
+                f=`<div class="form-group"><label>Tanggal Surat *</label><input type="date" id="tanggalSurat"></div>
+                <div class="form-group"><label>Nomor Surat *</label><input type="text" id="nomorSurat"></div>
+                <div class="form-group"><label>Tujuan *</label><input type="text" id="tujuan"></div>
+                <div class="form-group"><label>Perihal *</label><textarea id="perihal"></textarea></div>
+                <div class="form-group"><label>Disposisi Surat</label><textarea id="disposisiSurat"></textarea></div>
+                <div class="form-group"><label>Ditandatangani Oleh</label><input type="text" id="tandatangani"></div>
+                <div class="form-group"><label>Status *</label><select id="status"><option value="">Pilih Status</option><option value="Draft">Draft</option><option value="Terkirim">Terkirim</option><option value="Pending">Pending</option></select></div>
+                <div class="form-group"><label>File Surat PDF (URL)</label><input type="url" id="fileSurat" placeholder="https://drive.google.com/file/d/..."></div>`;
             }
-
-            let fieldsHTML = '';
-            
-            if (activeTab === 'masuk') {
-                fieldsHTML = `
-                    <div class="form-group">
-                        <label>Tanggal Penerimaan *</label>
-                        <input type="date" id="tanggalPenerimaan">
-                    </div>
-                    <div class="form-group">
-                        <label>Tanggal Diterima *</label>
-                        <input type="date" id="tanggalDiterima">
-                    </div>
-                    <div class="form-group">
-                        <label>Tanggal Masuk *</label>
-                        <input type="date" id="tanggalMasuk">
-                    </div>
-                    <div class="form-group">
-                        <label>Nomor Surat *</label>
-                        <input type="text" id="nomorSurat" placeholder="Contoh: 001/SRT/2025">
-                    </div>
-                    <div class="form-group">
-                        <label>Asal Surat *</label>
-                        <input type="text" id="asalSurat" placeholder="Contoh: Kementerian XYZ">
-                    </div>
-                    <div class="form-group">
-                        <label>Perihal *</label>
-                        <textarea id="perihal" placeholder="Isi perihal surat"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Tujuan/Disposisi</label>
-                        <input type="text" id="tujuanDisposisi" placeholder="Contoh: Bagian Keuangan">
-                    </div>
-                    <div class="form-group">
-                        <label>Tanggal Disposisi</label>
-                        <input type="date" id="tanggalDisposisi">
-                    </div>
-                    <div class="form-group">
-                        <label>Status *</label>
-                        <select id="status">
-                            <option value="">Pilih Status</option>
-                            <option value="Proses">Proses</option>
-                            <option value="Selesai">Selesai</option>
-                            <option value="Pending">Pending</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>File Surat PDF</label>
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleUploadMode('upload')" id="btnUploadMode">
-                                📤 Upload File
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleUploadMode('url')" id="btnUrlMode">
-                                🔗 Input URL
-                            </button>
-                        </div>
-                        
-                        <div id="uploadSection" style="display: none;">
-                            <input type="file" id="fileInput" accept=".pdf" onchange="handleFileUpload(event)">
-                            <small style="color: #666; display: block; margin-top: 5px;">Upload file PDF (Max 10MB)</small>
-                            <div id="uploadProgress" style="display: none; margin-top: 10px;">
-                                <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
-                                    <div id="progressBar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
-                                </div>
-                                <small id="uploadStatus" style="color: #666; margin-top: 5px; display: block;">Uploading...</small>
-                            </div>
-                        </div>
-                        
-                        <div id="urlSection" style="display: block;">
-                            <input type="url" id="fileSurat" placeholder="https://drive.google.com/file/d/...">
-                            <small style="color: #666; display: block; margin-top: 5px;">
-                                Paste link Google Drive atau 
-                                <a href="https://drive.google.com/drive/folders/1cX7Texv-8clOR5i1Si5bUbwvaTcTXcKM?usp=sharing" target="_blank" style="color: #667eea;">
-                                    upload manual ke folder ini
-                                </a>
-                            </small>
-                        </div>
-                        
-                        <div id="filePreview" style="margin-top: 10px;"></div>
-                    </div>
-                `;
-            } else {
-                fieldsHTML = `
-                    <div class="form-group">
-                        <label>Tanggal Surat *</label>
-                        <input type="date" id="tanggalSurat">
-                    </div>
-                    <div class="form-group">
-                        <label>Nomor Surat *</label>
-                        <input type="text" id="nomorSurat" placeholder="Contoh: 001/SRT/2025">
-                    </div>
-                    <div class="form-group">
-                        <label>Tujuan *</label>
-                        <input type="text" id="tujuan" placeholder="Contoh: Instansi ABC">
-                    </div>
-                    <div class="form-group">
-                        <label>Perihal *</label>
-                        <textarea id="perihal" placeholder="Isi perihal surat"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Disposisi Surat</label>
-                        <textarea id="disposisiSurat" placeholder="Isi disposisi surat"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Ditandatangani Oleh</label>
-                        <input type="text" id="tandatangani" placeholder="Nama penandatangan">
-                    </div>
-                    <div class="form-group">
-                        <label>Status *</label>
-                        <select id="status">
-                            <option value="">Pilih Status</option>
-                            <option value="Draft">Draft</option>
-                            <option value="Terkirim">Terkirim</option>
-                            <option value="Pending">Pending</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>File Surat PDF</label>
-                        <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleUploadMode('upload')" id="btnUploadMode">
-                                📤 Upload File
-                            </button>
-                            <button type="button" class="btn btn-secondary btn-sm" onclick="toggleUploadMode('url')" id="btnUrlMode">
-                                🔗 Input URL
-                            </button>
-                        </div>
-                        
-                        <div id="uploadSection" style="display: none;">
-                            <input type="file" id="fileInput" accept=".pdf" onchange="handleFileUpload(event)">
-                            <small style="color: #666; display: block; margin-top: 5px;">Upload file PDF (Max 10MB)</small>
-                            <div id="uploadProgress" style="display: none; margin-top: 10px;">
-                                <div style="background: #e0e0e0; height: 8px; border-radius: 4px; overflow: hidden;">
-                                    <div id="progressBar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100%; width: 0%; transition: width 0.3s;"></div>
-                                </div>
-                                <small id="uploadStatus" style="color: #666; margin-top: 5px; display: block;">Uploading...</small>
-                            </div>
-                        </div>
-                        
-                        <div id="urlSection" style="display: block;">
-                            <input type="url" id="fileSurat" placeholder="https://drive.google.com/file/d/...">
-                            <small style="color: #666; display: block; margin-top: 5px;">
-                                Paste link Google Drive atau 
-                                <a href="https://drive.google.com/drive/folders/1cX7Texv-8clOR5i1Si5bUbwvaTcTXcKM?usp=sharing" target="_blank" style="color: #667eea;">
-                                    upload manual ke folder ini
-                                </a>
-                            </small>
-                        </div>
-                        
-                        <div id="filePreview" style="margin-top: 10px;"></div>
-                    </div>
-                `;
-            }
-
-            formFields.innerHTML = fieldsHTML;
-
-            if (mode === 'edit' && id !== null) {
-                const data = activeTab === 'masuk' ? suratMasuk : suratKeluar;
-                const item = data.find(d => d.id === id);
-                
-                if (item) {
-                    Object.keys(item).forEach(key => {
-                        const input = document.getElementById(key);
-                        if (input && key !== 'id') {
-                            input.value = item[key] || '';
-                        }
+            fields.innerHTML=f;
+            if(m==='edit'&&id){
+                const data=activeTab==='masuk'?suratMasuk:suratKeluar,item=data.find(d=>d.id===id);
+                if(item){
+                    Object.keys(item).forEach(k=>{
+                        const inp=document.getElementById(k);
+                        if(inp&&k!=='id')inp.value=item[k]||'';
                     });
-                    
-                    if (item.fileSurat) {
-                        const preview = document.getElementById('filePreview');
-                        preview.innerHTML = `
-                            <div style="padding: 10px; background: #d4edda; border-radius: 8px; color: #155724;">
-                                ✅ File tersedia: <a href="${item.fileSurat}" target="_blank" style="color: #155724; font-weight: 600;">Lihat File</a>
-                            </div>
-                        `;
-                    }
                 }
             }
         }
 
-        function toggleUploadMode(mode) {
-            const uploadSection = document.getElementById('uploadSection');
-            const urlSection = document.getElementById('urlSection');
-            const btnUpload = document.getElementById('btnUploadMode');
-            const btnUrl = document.getElementById('btnUrlMode');
-            
-            if (mode === 'upload') {
-                uploadSection.style.display = 'block';
-                urlSection.style.display = 'none';
-                btnUpload.style.background = '#667eea';
-                btnUpload.style.color = 'white';
-                btnUrl.style.background = '#6c757d';
-                btnUrl.style.color = 'white';
-            } else {
-                uploadSection.style.display = 'none';
-                urlSection.style.display = 'block';
-                btnUpload.style.background = '#6c757d';
-                btnUpload.style.color = 'white';
-                btnUrl.style.background = '#667eea';
-                btnUrl.style.color = 'white';
-            }
-        }
-
-        async function handleFileUpload(event) {
-            const file = event.target.files[0];
-            const preview = document.getElementById('filePreview');
-            const progress = document.getElementById('uploadProgress');
-            const progressBar = document.getElementById('progressBar');
-            const uploadStatus = document.getElementById('uploadStatus');
-            
-            if (!file) return;
-            
-            if (file.type !== 'application/pdf') {
-                preview.innerHTML = '<div style="padding: 10px; background: #f8d7da; border-radius: 8px; color: #721c24;">❌ Hanya file PDF yang diperbolehkan</div>';
-                event.target.value = '';
-                return;
-            }
-            
-            if (file.size > 10 * 1024 * 1024) {
-                preview.innerHTML = '<div style="padding: 10px; background: #f8d7da; border-radius: 8px; color: #721c24;">❌ Ukuran file maksimal 10MB</div>';
-                event.target.value = '';
-                return;
-            }
-            
-            progress.style.display = 'block';
-            progressBar.style.width = '0%';
-            uploadStatus.textContent = 'Membaca file...';
-            preview.innerHTML = '';
-            
-            try {
-                const base64 = await fileToBase64(file);
-                
-                progressBar.style.width = '30%';
-                uploadStatus.textContent = 'Mengirim ke Google Drive...';
-                
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'text/plain'
-                    },
-                    body: JSON.stringify({
-                        action: 'uploadFile',
-                        fileName: file.name,
-                        fileData: base64,
-                        mimeType: file.type
-                    })
-                });
-                
-                progressBar.style.width = '90%';
-                
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    progressBar.style.width = '100%';
-                    uploadStatus.textContent = 'Upload berhasil!';
-                    
-                    document.getElementById('fileSurat').value = result.fileUrl;
-                    
-                    setTimeout(() => {
-                        progress.style.display = 'none';
-                        preview.innerHTML = `
-                            <div style="padding: 10px; background: #d4edda; border-radius: 8px; color: #155724;">
-                                ✅ File berhasil diupload: ${file.name}
-                                <br><a href="${result.fileUrl}" target="_blank" style="color: #155724; font-weight: 600;">Lihat File di Google Drive</a>
-                            </div>
-                        `;
-                    }, 1000);
-                    
-                } else {
-                    throw new Error(result.message || 'Upload gagal');
-                }
-                
-            } catch (error) {
-                console.error('Upload error:', error);
-                progress.style.display = 'none';
-                preview.innerHTML = `
-                    <div style="padding: 10px; background: #fff3cd; border-radius: 8px; color: #856404;">
-                        ⚠️ Upload gagal: ${error.message}
-                        <br><br><strong>Solusi:</strong>
-                        <br>1. Upload manual ke <a href="https://drive.google.com/drive/folders/1cX7Texv-8clOR5i1Si5bUbwvaTcTXcKM?usp=sharing" target="_blank" style="color: #856404; font-weight: 600;">folder ini</a>
-                        <br>2. Klik kanan file → Get link → Copy link
-                        <br>3. Pilih "Input URL" dan paste link tersebut
-                    </div>
-                `;
-                event.target.value = '';
-            }
-        }
-
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => {
-                    const base64 = reader.result.split(',')[1];
-                    resolve(base64);
-                };
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        function closeModal() {
+        function closeModal(){
             document.getElementById('modal').classList.remove('active');
             document.getElementById('suratForm').reset();
-            editingId = null;
+            editingId=null;
         }
 
-        async function saveSurat() {
-            const tanggalDiterima = document.getElementById('tanggalDiterima');
-            const tanggalMasuk = document.getElementById('tanggalMasuk');
-            const tanggalSurat = document.getElementById('tanggalSurat');
-            const nomorSurat = document.getElementById('nomorSurat');
-            const status = document.getElementById('status');
-
-            if (activeTab === 'masuk') {
-                if (!tanggalMasuk.value || !nomorSurat.value || !status.value) {
+        async function saveSurat(){
+            const btn=document.getElementById('saveBtnText');
+            const form=document.getElementById('suratForm'),inputs=form.querySelectorAll('input,textarea,select');
+            const formData={};
+            inputs.forEach(i=>{if(i.id)formData[i.id]=i.value;});
+            
+            if(activeTab==='masuk'){
+                if(!formData.tanggalSurat||!formData.tanggalMasuk||!formData.nomorSurat||!formData.asalSurat||!formData.perihal||!formData.status){
                     alert('Mohon lengkapi semua field yang wajib diisi (*)');
                     return;
                 }
-            } else {
-                if (!tanggalSurat.value || !nomorSurat.value || !status.value) {
+            }else{
+                if(!formData.tanggalSurat||!formData.nomorSurat||!formData.tujuan||!formData.perihal||!formData.status){
                     alert('Mohon lengkapi semua field yang wajib diisi (*)');
                     return;
                 }
             }
-
-            const btn = document.getElementById('saveBtnText');
-            btn.innerHTML = '<div class="loading"></div> Menyimpan...';
-
-            const data = activeTab === 'masuk' ? suratMasuk : suratKeluar;
-            const formData = {};
-
-            const form = document.getElementById('suratForm');
-            const inputs = form.querySelectorAll('input, textarea, select');
-            inputs.forEach(input => {
-                if (input.id) {
-                    formData[input.id] = input.value;
-                }
-            });
-
-            let action = '';
             
-            if (editingId !== null) {
-                const index = data.findIndex(d => d.id === editingId);
-                if (index !== -1) {
-                    data[index] = { ...data[index], ...formData, id: editingId };
-                    action = 'update';
-                } else {
-                    showAlert('Data tidak ditemukan untuk di-edit', 'danger');
-                    btn.innerHTML = '💾 Simpan';
+            btn.innerHTML='<div class="loading"></div> Menyimpan...';
+            const data=activeTab==='masuk'?suratMasuk:suratKeluar;
+            let action='';
+            
+            if(editingId!==null){
+                const idx=data.findIndex(d=>d.id===editingId);
+                if(idx!==-1){
+                    data[idx]={...data[idx],...formData,id:editingId};
+                    action='update';
+                }else{
+                    showAlert('Data tidak ditemukan','danger');
+                    btn.innerHTML='💾 Simpan';
                     return;
                 }
-            } else {
-                formData.id = 'ID_' + Date.now().toString();
+            }else{
+                formData.id='ID_'+Date.now().toString();
                 data.push(formData);
-                action = 'add';
+                action='add';
             }
-
-            if (activeTab === 'masuk') {
-                suratMasuk = data;
-            } else {
-                suratKeluar = data;
-            }
-
-            console.log('💾 Saving data:', { action, activeTab, formData });
             
-            try {
+            if(activeTab==='masuk')suratMasuk=data;
+            else suratKeluar=data;
+            
+            try{
                 saveLocalData();
-                filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
-                console.log('✅ Data saved locally');
-            } catch (error) {
-                console.error('❌ Failed to save locally:', error);
-                showAlert('❌ Gagal menyimpan data lokal', 'danger');
-                btn.innerHTML = '💾 Simpan';
+                filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
+            }catch(e){
+                showAlert('❌ Gagal menyimpan data lokal','danger');
+                btn.innerHTML='💾 Simpan';
                 return;
             }
             
-            try {
-                console.log('🔄 Attempting to sync to Google Sheets...');
-                const result = await syncToSheet(action, activeTab, formData);
-                console.log('✅ Sync successful:', result);
-                showAlert(`✅ Data berhasil ${action === 'add' ? 'ditambahkan' : 'diupdate'} dan disinkronkan ke Google Sheets`, 'success');
-            } catch (error) {
-                console.error('⚠️ Sync failed:', error);
-                showAlert(`⚠️ Data tersimpan lokal, tapi gagal sync ke Google Sheets: ${error.message}`, 'warning');
+            try{
+                await syncToSheet(action,activeTab,formData);
+                showAlert(`✅ Data berhasil ${action==='add'?'ditambahkan':'diupdate'} dan disinkronkan`,'success');
+            }catch(e){
+                showAlert(`⚠️ Data tersimpan lokal, tapi gagal sync: ${e.message}`,'warning');
             }
             
-            btn.innerHTML = '💾 Simpan';
+            btn.innerHTML='💾 Simpan';
             closeModal();
-            currentPage = 1;
+            currentPage=1;
             renderTable();
         }
 
-        function editSurat(id) {
-            openModal('edit', id);
-        }
+        function editSurat(id){openModal('edit',id);}
 
-        async function deleteSurat(id) {
-            if (!confirm('Apakah Anda yakin ingin menghapus data ini?')) return;
-
-            let deletedItem;
-            
-            if (activeTab === 'masuk') {
-                deletedItem = suratMasuk.find(s => s.id === id);
-                if (!deletedItem) {
-                    showAlert('Data tidak ditemukan', 'danger');
-                    return;
-                }
-                suratMasuk = suratMasuk.filter(s => s.id !== id);
-            } else {
-                deletedItem = suratKeluar.find(s => s.id === id);
-                if (!deletedItem) {
-                    showAlert('Data tidak ditemukan', 'danger');
-                    return;
-                }
-                suratKeluar = suratKeluar.filter(s => s.id !== id);
+        async function deleteSurat(id){
+            if(!confirm('Apakah Anda yakin ingin menghapus data ini?'))return;
+            let deleted;
+            if(activeTab==='masuk'){
+                deleted=suratMasuk.find(s=>s.id===id);
+                if(!deleted){showAlert('Data tidak ditemukan','danger');return;}
+                suratMasuk=suratMasuk.filter(s=>s.id!==id);
+            }else{
+                deleted=suratKeluar.find(s=>s.id===id);
+                if(!deleted){showAlert('Data tidak ditemukan','danger');return;}
+                suratKeluar=suratKeluar.filter(s=>s.id!==id);
             }
-
-            try {
+            try{
                 saveLocalData();
-                filteredData = activeTab === 'masuk' ? [...suratMasuk] : [...suratKeluar];
-            } catch (error) {
-                console.error('Failed to save after delete:', error);
-                showAlert('❌ Gagal menghapus data', 'danger');
+                filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
+            }catch(e){
+                showAlert('❌ Gagal menghapus data','danger');
                 return;
             }
-            
-            try {
-                await syncToSheet('delete', activeTab, deletedItem);
-                showAlert('✅ Data berhasil dihapus', 'success');
-            } catch (error) {
-                showAlert('⚠️ Data terhapus lokal, tapi gagal sync: ' + error.message, 'warning');
+            try{
+                await syncToSheet('delete',activeTab,deleted);
+                showAlert('✅ Data berhasil dihapus','success');
+            }catch(e){
+                showAlert('⚠️ Data terhapus lokal, tapi gagal sync: '+e.message,'warning');
             }
-            
             renderTable();
         }
 
-        function filterTable() {
-            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-            const data = activeTab === 'masuk' ? suratMasuk : suratKeluar;
-            
-            if (!searchTerm) {
-                filteredData = [...data];
-                currentPage = 1;
+        function filterTable(){
+            const s=document.getElementById('searchInput').value.toLowerCase();
+            const data=activeTab==='masuk'?suratMasuk:suratKeluar;
+            if(!s){
+                filteredData=[...data];
+                currentPage=1;
                 renderTable();
                 return;
             }
-
-            filteredData = data.filter(item => {
-                return Object.values(item).some(val => 
-                    String(val).toLowerCase().includes(searchTerm)
-                );
-            });
-
-            currentPage = 1;
+            filteredData=data.filter(i=>Object.values(i).some(v=>String(v).toLowerCase().includes(s)));
+            currentPage=1;
             renderTable();
         }
 
-        function logout() {
-            if (confirm('Apakah Anda yakin ingin logout?')) {
+        function logout(){
+            if(confirm('Apakah Anda yakin ingin logout?')){
                 localStorage.removeItem('isLoggedIn');
                 localStorage.removeItem('username');
-                window.location.href = 'https://upt-tpi.github.io/aplikasi-surat/login.html';
+                window.location.href='https://upt-tpi.github.io/aplikasi-surat/login.html';
             }
         }
 
-        function showDebugInfo() {
-            const info = `
-=== DEBUG INFORMATION ===
+        function showDebugInfo(){
+            const info=`=== DEBUG INFORMATION ===
 
 API URL: ${apiUrl}
 Active Tab: ${activeTab}
@@ -1484,30 +493,17 @@ Surat Masuk Count: ${suratMasuk.length}
 Surat Keluar Count: ${suratKeluar.length}
 
 Surat Masuk (Local):
-${JSON.stringify(suratMasuk, null, 2)}
+${JSON.stringify(suratMasuk,null,2)}
 
 Surat Keluar (Local):
-${JSON.stringify(suratKeluar, null, 2)}
-
-=== CARA MEMPERBAIKI CORS ERROR ===
-
-1. Buka Google Apps Script Editor
-2. Klik Deploy → Manage deployments
-3. Edit deployment yang ada
-4. Pastikan:
-   - Execute as: Me (${localStorage.getItem('username') || 'email Anda'})
-   - Who has access: ANYONE (bukan "Anyone with Google account")
-5. Deploy ulang dan copy URL baru
-6. Paste URL di konfigurasi aplikasi ini
+${JSON.stringify(suratKeluar,null,2)}
 
 === TROUBLESHOOTING ===
-✓ Data lokal tersimpan: ${suratMasuk.length + suratKeluar.length} data
-✓ LocalStorage working: ${localStorage.getItem('surat-masuk') ? 'YES' : 'NO'}
-✓ API configured: YES (URL sudah ditetapkan permanen)
+✓ Data lokal tersimpan: ${suratMasuk.length+suratKeluar.length} data
+✓ LocalStorage working: ${localStorage.getItem('surat-masuk')?'YES':'NO'}
+✓ API configured: YES
 
-Buka Console (F12) untuk melihat log detail
-            `;
-            
+Buka Console (F12) untuk melihat log detail`;
             alert(info);
             console.log(info);
         }
