@@ -3,581 +3,1791 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Manajemen Surat</title>
+    <title>Sistem Manajemen Surat</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-        .container { max-width: 1400px; margin: 0 auto; background: white; border-radius: 15px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); overflow: hidden; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; }
-        .header-content { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
-        .header h1 { font-size: 2rem; margin-bottom: 10px; }
-        .config-section { background: #f8f9fa; border-bottom: 2px solid #e0e0e0; }
-        .config-header { padding: 15px 30px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; user-select: none; }
-        .config-header:hover { background: #e9ecef; }
-        .config-header h3 { font-size: 1rem; color: #333; display: flex; align-items: center; gap: 10px; }
-        .config-toggle { font-size: 1.2rem; transition: transform 0.3s; }
-        .config-toggle.open { transform: rotate(180deg); }
-        .config-content { max-height: 0; overflow: hidden; transition: max-height 0.3s ease-out; }
-        .config-content.open { max-height: 500px; padding: 20px 30px; }
-        .config-row { display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap; }
-        .config-group { flex: 1; min-width: 250px; }
-        .config-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 0.9rem; }
-        .config-group input { width: 100%; padding: 10px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.9rem; }
-        .sync-status { display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; }
-        .sync-status.connected { background: #d4edda; color: #155724; }
-        .sync-status.disconnected { background: #f8d7da; color: #721c24; }
-        .tabs { display: flex; background: #f8f9fa; border-bottom: 2px solid #e0e0e0; }
-        .tab { flex: 1; padding: 20px; text-align: center; cursor: pointer; background: #f8f9fa; border: none; font-size: 1rem; font-weight: 600; color: #666; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
-        .tab:hover { background: #e9ecef; }
-        .tab.active { background: white; color: #667eea; border-bottom: 3px solid #667eea; }
-        .content { padding: 30px; }
-        .toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
-        .search-box { display: flex; align-items: center; background: #f8f9fa; padding: 10px 15px; border-radius: 8px; flex: 1; min-width: 250px; }
-        .search-box input { border: none; background: none; outline: none; width: 100%; margin-left: 10px; font-size: 0.95rem; }
-        .btn { padding: 12px 24px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.95rem; font-weight: 600; transition: all 0.3s; display: flex; align-items: center; gap: 8px; }
-        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
-        .btn-success { background: #28a745; color: white; }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-warning { background: #ffc107; color: #333; }
-        .btn-secondary { background: #6c757d; color: white; }
-        .btn-info { background: #17a2b8; color: white; }
-        .btn-sm { padding: 6px 12px; font-size: 0.85rem; }
-        .table-container { width: 100%; overflow-x: auto; margin-top: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-        table { width: 100%; border-collapse: collapse; background: white; min-width: 800px; }
-        thead { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; position: sticky; top: 0; z-index: 5; }
-        th { padding: 15px 10px; text-align: left; font-weight: 600; font-size: 0.85rem; white-space: nowrap; }
-        td { padding: 12px 10px; border-bottom: 1px solid #e0e0e0; font-size: 0.85rem; vertical-align: top; }
-        tbody tr { transition: all 0.2s; }
-        tbody tr:hover { background: #f8f9fa; }
-        .actions { display: flex; gap: 8px; flex-wrap: wrap; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; border-radius: 15px; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .modal-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 25px; display: flex; justify-content: space-between; align-items: center; }
-        .modal-header h2 { font-size: 1.5rem; }
-        .close-btn { background: rgba(255,255,255,0.2); border: none; color: white; width: 35px; height: 35px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.3s; font-size: 1.5rem; }
-        .close-btn:hover { background: rgba(255,255,255,0.3); }
-        .modal-body { padding: 30px; }
-        .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #333; font-size: 0.9rem; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 0.95rem; transition: all 0.3s; }
-        .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
-        .form-group textarea { resize: vertical; min-height: 100px; }
-        .modal-footer { padding: 20px 30px; background: #f8f9fa; display: flex; justify-content: flex-end; gap: 10px; }
-        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
-        .empty-state svg { width: 80px; height: 80px; margin-bottom: 20px; opacity: 0.5; }
-        .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 600; }
-        .badge-success { background: #d4edda; color: #155724; }
-        .badge-warning { background: #fff3cd; color: #856404; }
-        .badge-danger { background: #f8d7da; color: #721c24; }
-        .badge-secondary { background: #e2e3e5; color: #383d41; }
-        .alert { padding: 15px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem; }
-        .alert-info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
-        .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-        .alert-danger { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-        .alert-warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
-        .loading { display: inline-block; width: 16px; height: 16px; border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .pagination { display: flex; justify-content: center; align-items: center; margin-top: 20px; gap: 5px; }
-        .pagination button { padding: 8px 12px; border: 1px solid #e0e0e0; background: white; border-radius: 5px; cursor: pointer; font-size: 0.9rem; }
-        .pagination button:hover:not(:disabled) { background: #f3f4f6; }
-        .pagination button.active { background: #667eea; color: white; border-color: #667eea; }
-        .pagination button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .pagination-info { margin: 0 15px; font-size: 0.9rem; color: #6b7280; }
-        .file-link { color: #667eea; text-decoration: none; font-weight: 500; }
-        .file-link:hover { text-decoration: underline; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 35px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .config-section {
+            background: #f8f9ff;
+            border-bottom: 3px solid #e0e0e0;
+            padding: 20px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .config-status {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulse 2s infinite;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+
+        .status-indicator.connected {
+            background: #10b981;
+            animation: none;
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.95); }
+        }
+
+        .api-config {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .api-config input {
+            padding: 10px 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            min-width: 350px;
+            transition: border-color 0.3s;
+        }
+
+        .api-config input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-info {
+            background: #06b6d4;
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f9fafb;
+            border-bottom: 3px solid #e0e0e0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 22px;
+            text-align: center;
+            cursor: pointer;
+            background: #f9fafb;
+            border: none;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .tab:hover {
+            background: #e5e7eb;
+            color: #333;
+        }
+
+        .tab.active {
+            background: white;
+            color: #667eea;
+            border-bottom: 4px solid #667eea;
+        }
+
+        .content {
+            padding: 35px;
+            min-height: 500px;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            display: flex;
+            align-items: center;
+            background: #f9fafb;
+            padding: 12px 18px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 300px;
+            border: 2px solid #e5e7eb;
+            transition: all 0.3s;
+        }
+
+        .search-box:focus-within {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-box input {
+            border: none;
+            background: none;
+            outline: none;
+            width: 100%;
+            margin-left: 12px;
+            font-size: 0.95rem;
+        }
+
+        .alert {
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            font-size: 0.95rem;
+            animation: slideDown 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border-left: 4px solid #10b981;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid #ef4444;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border-left: 4px solid #f59e0b;
+        }
+
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border-left: 4px solid #3b82f6;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            min-width: 1000px;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th {
+            padding: 18px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            padding: 16px 18px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 0.9rem;
+        }
+
+        tbody tr {
+            transition: all 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f8f9ff;
+            transform: scale(1.01);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 900px;
+            max-height: 90vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+            box-shadow: 0 25px 70px rgba(0,0,0,0.4);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(100px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .modal-body {
+            padding: 35px;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            margin-bottom: 25px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-footer {
+            padding: 25px 35px;
+            background: #f9fafb;
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #9ca3af;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            margin-bottom: 12px;
+            color: #6b7280;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-bottom: 35px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 28px;
+            border-radius: 15px;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.3);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-8px);
+        }
+
+        .stat-card h3 {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .value {
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 30px;
+            gap: 8px;
+        }
+
+        .pagination button {
+            padding: 10px 16px;
+            border: 2px solid #e5e7eb;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            margin: 0 20px;
+            font-size: 0.95rem;
+            color: #6b7280;
+            font-weight: 500;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .upload-area {
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            background: #f9fafb;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .upload-area:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #667eea;
+            background: #e0e7ff;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #9ca3af;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            color: #6b7280;
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-subtext {
+            color: #9ca3af;
+            font-size: 0.9rem;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon {
+            color: #667eea;
+            font-size: 1.2rem;
+        }
+
+        .file-name {
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .file-size {
+            color: #6b7280;
+            font-size: 0.85rem;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
         @media (max-width: 768px) {
-            .header h1 { font-size: 1.5rem; }
-            .toolbar { flex-direction: column; }
-            .search-box { width: 100%; }
-            .pagination { flex-wrap: wrap; }
-            td, th { white-space: normal; word-wrap: break-word; }
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.5rem;
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+            }
+
+            .api-config input {
+                min-width: 100%;
+            }
+
+            .config-section {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .search-box {
+                min-width: 100%;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <div class="header-content">
-                <div>
-                    <h1>📧 Aplikasi Manajemen Surat</h1>
-                    <p>Kelola Surat Masuk dan Surat Keluar dengan Integrasi Google Sheets</p>
-                </div>
-                <button class="btn btn-danger" onclick="logout()"><span>🚪</span> Logout</button>
-            </div>
+            <h1>📬 Sistem Manajemen Surat</h1>
+            <p>Kepala UPT Tempat Pelelangan Ikan</p>
         </div>
 
         <div class="config-section">
-            <div class="config-header" onclick="toggleConfig()">
-                <h3>⚙️ Konfigurasi API & Sinkronisasi</h3>
-                <span class="config-toggle" id="configToggle">▼</span>
+            <div class="config-status">
+                <div class="status-indicator" id="connectionStatus"></div>
+                <span id="connectionText">Memeriksa koneksi...</span>
             </div>
-            <div class="config-content" id="configContent">
-                <div class="alert alert-warning">⚠️ <strong>Penting:</strong> Deploy Google Apps Script dengan akses <strong>"Anyone"</strong></div>
-                <div class="config-row">
-                    <div class="config-group">
-                        <label>🔗 Google Apps Script Web App URL</label>
-                        <input type="url" id="apiUrl" value="https://script.google.com/macros/s/AKfycbx4XftW56EsHKxvmOS2gi7To5SNZpAM4Pwqx37IpubebFcfwDp-3wJbLMZLbzszWNs9/exec" readonly>
-                    </div>
-                    <button class="btn btn-info" onclick="testConnection()"><span id="testBtnText">🔌 Test Koneksi</span></button>
-                    <button class="btn btn-success" onclick="syncFromSheet()"><span id="syncBtnText">🔄 Sync Data</span></button>
-                </div>
-                <div style="margin-top: 15px;">
-                    <div id="connectionStatus" class="sync-status disconnected"><span>●</span> Belum Terhubung</div>
-                </div>
+            <div class="api-config">
+                <input type="text" id="apiUrlInput" placeholder="Paste URL Google Apps Script di sini..." value="">
+                <button class="btn btn-info btn-sm" onclick="saveApiUrl()">💾 Simpan URL</button>
+                <button class="btn btn-success btn-sm" onclick="syncAllData()">
+                    <span id="syncBtnText">🔄 Sync Data</span>
+                </button>
             </div>
         </div>
 
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('masuk')"><span>📥</span> Surat Masuk</button>
-            <button class="tab" onclick="switchTab('keluar')"><span>📤</span> Surat Keluar</button>
+            <button class="tab active" onclick="switchTab('masuk')">
+                📥 Surat Masuk
+            </button>
+            <button class="tab" onclick="switchTab('keluar')">
+                📤 Surat Keluar
+            </button>
+            <button class="tab" onclick="switchTab('dashboard')">
+                📊 Dashboard
+            </button>
         </div>
 
         <div class="content">
             <div id="alertContainer"></div>
-            <div class="toolbar">
-                <div class="search-box">
-                    <span>🔍</span>
-                    <input type="text" id="searchInput" placeholder="Cari surat..." onkeyup="filterTable()">
-                </div>
-                <button class="btn btn-secondary btn-sm" onclick="showDebugInfo()">🐛 Debug</button>
-                <button class="btn btn-primary" onclick="openModal('add')"><span>➕</span> Tambah Surat</button>
-            </div>
-            <div id="tableContainer"></div>
+            <div id="contentArea"></div>
         </div>
     </div>
 
+    <!-- Modal Form Surat -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Tambah Surat</h2>
-                <button class="close-btn" onclick="closeModal()">✕</button>
+                <h2 id="modalTitle">Form Surat</h2>
+                <button class="btn btn-danger btn-sm" onclick="closeModal()">✕</button>
             </div>
             <div class="modal-body">
-                <form id="suratForm"><div id="formFields"></div></form>
+                <form id="mainForm" onsubmit="event.preventDefault();">
+                    <div id="formFields"></div>
+                </form>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
-                <button class="btn btn-success" onclick="saveSurat()"><span id="saveBtnText">💾 Simpan</span></button>
+                <button class="btn btn-success" onclick="saveData()">
+                    <span id="saveBtnText">💾 Simpan</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Upload File -->
+    <div id="uploadModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📎 Upload File Surat</h2>
+                <button class="btn btn-danger btn-sm" onclick="closeUploadModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                    <div class="upload-icon">📁</div>
+                    <div class="upload-text">Klik atau seret file ke sini</div>
+                    <div class="upload-subtext">PDF, DOC, DOCX, JPG, PNG (Maks. 10MB)</div>
+                    <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="handleFileSelect(event)">
+                </div>
+                <div class="file-list" id="fileList"></div>
+                <div class="progress-bar" id="progressBar" style="display: none;">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeUploadModal()">Batal</button>
+                <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled>📤 Upload</button>
             </div>
         </div>
     </div>
 
     <script>
-        let activeTab='masuk',suratMasuk=[],suratKeluar=[],editingId=null,currentPage=1;
-        const itemsPerPage=10,apiUrl='https://script.google.com/macros/s/AKfycbysTOEAEm3g2H5AEeLTwdZ_JoFqZOHrDTkM4vP6huVENyy-MWZLQF0O3qjtdFd2CKVU/exec';
-        let filteredData=[];
+        let API_URL = "";
+        let activeTab = 'masuk';
+        let dataSuratMasuk = [];
+        let dataSuratKeluar = [];
+        let editingId = null;
+        let currentPage = 1;
+        const itemsPerPage = 10;
+        let filteredData = [];
+        let isConnected = false;
+        let currentUploadId = null;
+        let selectedFile = null;
 
-        window.addEventListener('load',()=>{
-            if(localStorage.getItem('isLoggedIn')!=='true'){
-                window.location.href='https://upt-tpi.github.io/aplikasi-surat/login.html';
-                return;
-            }
-            document.getElementById('apiUrl').value=apiUrl;
+        window.addEventListener('load', () => {
+            loadApiUrl();
             loadLocalData();
-            renderTable();
-            setTimeout(()=>testConnection(),1000);
+            if (API_URL) {
+                testConnection();
+            } else {
+                showAlert('⚠️ Silakan masukkan URL Google Apps Script terlebih dahulu', 'warning');
+            }
+            renderContent();
+            
+            // Setup drag and drop
+            setupDragAndDrop();
         });
 
-        function toggleConfig(){
-            const c=document.getElementById('configContent'),t=document.getElementById('configToggle');
-            if(c.classList.contains('open')){c.classList.remove('open');t.classList.remove('open');}
-            else{c.classList.add('open');t.classList.add('open');}
+        function loadApiUrl() {
+            const saved = localStorage.getItem('surat-api-url');
+            if (saved) {
+                API_URL = saved;
+                document.getElementById('apiUrlInput').value = saved;
+            }
         }
 
-        function loadLocalData(){
-            try{
-                const m=localStorage.getItem('surat-masuk'),k=localStorage.getItem('surat-keluar');
-                if(m)suratMasuk=JSON.parse(m);
-                if(k)suratKeluar=JSON.parse(k);
-                filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
-            }catch(e){console.log('Data lokal belum ada:',e);}
-        }
-
-        function saveLocalData(){
-            try{
-                localStorage.setItem('surat-masuk',JSON.stringify(suratMasuk));
-                localStorage.setItem('surat-keluar',JSON.stringify(suratKeluar));
-                console.log('✅ Data tersimpan lokal');
-            }catch(e){console.error('❌ Error:',e);throw e;}
-        }
-
-        function updateConnectionStatus(c){
-            const s=document.getElementById('connectionStatus');
-            s.className=c?'sync-status connected':'sync-status disconnected';
-            s.innerHTML=c?'<span>●</span> Terhubung ke Google Sheets':'<span>●</span> Belum Terhubung';
-        }
-
-        function showAlert(m,t='info'){
-            const c=document.getElementById('alertContainer');
-            c.innerHTML=`<div class="alert alert-${t}">${m}</div>`;
-            setTimeout(()=>c.innerHTML='',5000);
-        }
-
-        async function testConnection(){
-            const b=document.getElementById('testBtnText');
-            b.innerHTML='<div class="loading"></div> Testing...';
-            try{
-                const r=await fetch(apiUrl+'?action=test'),d=await r.json();
-                if(d.status==='success'){
-                    updateConnectionStatus(true);
-                    showAlert('✅ Koneksi berhasil!','success');
-                }else throw new Error(d.message||'Koneksi gagal');
-            }catch(e){
-                console.error(e);
-                updateConnectionStatus(false);
-                showAlert('❌ Koneksi gagal: '+e.message,'danger');
-            }finally{b.innerHTML='🔌 Test Koneksi';}
-        }
-
-        async function syncFromSheet(){
-            const b=document.getElementById('syncBtnText');
-            b.innerHTML='<div class="loading"></div> Syncing...';
-            try{
-                const r=await fetch(apiUrl+'?action=getData'),d=await r.json();
-                if(d.status==='success'){
-                    suratMasuk=d.suratMasuk||[];
-                    suratKeluar=d.suratKeluar||[];
-                    saveLocalData();
-                    filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
-                    currentPage=1;
-                    renderTable();
-                    showAlert('✅ Data berhasil di-sync!','success');
-                }else throw new Error(d.message||'Sync gagal');
-            }catch(e){showAlert('❌ Sync gagal: '+e.message,'danger');}
-            finally{b.innerHTML='🔄 Sync Data';}
-        }
-
-        async function syncToSheet(a,s,r){
-            try{
-                const p={action:a,sheetType:s,data:r};
-                const res=await fetch(apiUrl,{
-                    method:'POST',
-                    headers:{'Content-Type':'text/plain'},
-                    body:JSON.stringify(p)
-                });
-                const t=await res.text(),d=JSON.parse(t);
-                if(d.status!=='success')throw new Error(d.message||'Sync gagal');
-                return d;
-            }catch(e){console.error(e);throw e;}
-        }
-
-        function switchTab(t){
-            activeTab=t;
-            currentPage=1;
-            document.querySelectorAll('.tab').forEach(e=>e.classList.remove('active'));
-            event.target.closest('.tab').classList.add('active');
-            document.getElementById('searchInput').value='';
-            filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
-            renderTable();
-        }
-
-        function formatDisplayDate(d){
-            if(!d||d==='-'||d==='')return'-';
-            if(d.includes('/')&&d.length<=10)return d;
+        function saveApiUrl() {
+            const input = document.getElementById('apiUrlInput');
+            const url = input.value.trim();
             
-            // Handle various date formats
-            try{
-                let dt;
+            if (!url) {
+                showAlert('Mohon masukkan URL Google Apps Script', 'warning');
+                return;
+            }
+            
+            API_URL = url;
+            localStorage.setItem('surat-api-url', url);
+            showAlert('✅ URL API berhasil disimpan! Menguji koneksi...', 'success');
+            testConnection();
+        }
+
+        function loadLocalData() {
+            const masuk = localStorage.getItem('surat-masuk');
+            const keluar = localStorage.getItem('surat-keluar');
+            
+            if (masuk) {
+                try {
+                    dataSuratMasuk = JSON.parse(masuk);
+                } catch (e) {
+                    dataSuratMasuk = [];
+                }
+            }
+            if (keluar) {
+                try {
+                    dataSuratKeluar = JSON.parse(keluar);
+                } catch (e) {
+                    dataSuratKeluar = [];
+                }
+            }
+            
+            updateFilteredData();
+        }
+
+        function saveLocalData() {
+            localStorage.setItem('surat-masuk', JSON.stringify(dataSuratMasuk));
+            localStorage.setItem('surat-keluar', JSON.stringify(dataSuratKeluar));
+        }
+
+        function updateFilteredData() {
+            if (activeTab === 'masuk') {
+                filteredData = [...dataSuratMasuk];
+            } else if (activeTab === 'keluar') {
+                filteredData = [...dataSuratKeluar];
+            }
+        }
+
+        function showAlert(message, type = 'success') {
+            const container = document.getElementById('alertContainer');
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+            container.innerHTML = `<div class="alert alert-${type}">${icon} ${message}</div>`;
+            setTimeout(() => container.innerHTML = '', 5000);
+        }
+
+        async function testConnection() {
+            if (!API_URL) {
+                showAlert('⚠️ Mohon atur URL API terlebih dahulu', 'warning');
+                return;
+            }
+
+            const statusEl = document.getElementById('connectionStatus');
+            const textEl = document.getElementById('connectionText');
+            
+            textEl.textContent = 'Memeriksa koneksi...';
+            
+            try {
+                const testUrl = API_URL + '?action=test&t=' + Date.now();
+                const response = await fetch(testUrl, { method: 'GET' });
+                const data = await response.json();
                 
-                // Check if it's already in DD/MM/YYYY format
-                if(/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(d))return d;
+                if (data.status === 'success') {
+                    statusEl.classList.add('connected');
+                    textEl.textContent = 'Terhubung ke server';
+                    isConnected = true;
+                    showAlert('✅ Koneksi berhasil!', 'success');
+                } else {
+                    throw new Error(data.message || 'Connection failed');
+                }
+            } catch (error) {
+                statusEl.classList.remove('connected');
+                textEl.textContent = 'Koneksi gagal: Mode offline';
+                isConnected = false;
+                showAlert('❌ Koneksi gagal. Pastikan URL sudah benar dan Apps Script sudah di-deploy', 'danger');
+            }
+        }
+
+        async function syncAllData() {
+            if (!API_URL) {
+                showAlert('⚠️ Mohon atur URL API terlebih dahulu', 'warning');
+                return;
+            }
+
+            const btn = document.getElementById('syncBtnText');
+            btn.innerHTML = '<div class="loading"></div> Syncing...';
+
+            try {
+                const syncUrl = API_URL + '?action=getAllData&t=' + Date.now();
+                const response = await fetch(syncUrl, { method: 'GET' });
+                const data = await response.json();
                 
-                // Try to parse as ISO date or timestamp
-                if(d.includes('T')||d.includes('-')||!isNaN(Date.parse(d))){
-                    dt=new Date(d);
-                }else{
-                    // Try parsing DD-MM-YYYY or other formats
-                    const parts=d.split(/[-\/]/);
-                    if(parts.length===3){
-                        // Assume DD-MM-YYYY or DD/MM/YYYY
-                        dt=new Date(parts[2],parts[1]-1,parts[0]);
-                    }else{
-                        dt=new Date(d);
+                if (data.status === 'success') {
+                    dataSuratMasuk = data.suratMasuk || [];
+                    dataSuratKeluar = data.suratKeluar || [];
+                    updateFilteredData();
+                    saveLocalData();
+                    renderContent();
+                    showAlert('✅ Data berhasil di-sync!', 'success');
+                } else {
+                    throw new Error(data.message || 'Sync failed');
+                }
+            } catch (error) {
+                showAlert('❌ Sync gagal: ' + error.message, 'danger');
+            } finally {
+                btn.innerHTML = '🔄 Sync Data';
+            }
+        }
+
+        async function syncToSheet(action, dataType, rowData) {
+            if (!API_URL || !isConnected) {
+                return { status: 'error', message: 'Not connected' };
+            }
+
+            try {
+                const params = new URLSearchParams({
+                    action: action,
+                    dataType: dataType,
+                    data: JSON.stringify(rowData)
+                });
+                
+                const url = API_URL + '?' + params.toString();
+                const response = await fetch(url, { method: 'GET', redirect: 'follow' });
+                const result = await response.json();
+                
+                return result;
+            } catch (error) {
+                console.error('Sync error:', error);
+                throw error;
+            }
+        }
+
+        function switchTab(tab) {
+            activeTab = tab;
+            currentPage = 1;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.closest('.tab').classList.add('active');
+            updateFilteredData();
+            renderContent();
+        }
+
+        function renderContent() {
+            const content = document.getElementById('contentArea');
+            
+            if (activeTab === 'masuk') {
+                renderSuratMasuk(content);
+            } else if (activeTab === 'keluar') {
+                renderSuratKeluar(content);
+            } else if (activeTab === 'dashboard') {
+                renderDashboard(content);
+            }
+        }
+
+        function renderSuratMasuk(container) {
+            let html = `
+                <div class="toolbar">
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" placeholder="Cari surat masuk..." onkeyup="searchData()">
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal('masuk', 'add')">
+                        ➕ Tambah Surat Masuk
+                    </button>
+                </div>
+            `;
+
+            if (filteredData.length === 0) {
+                html += `
+                    <div class="empty-state">
+                        <h3>📭 Belum ada data surat masuk</h3>
+                        <p>Klik "Tambah Surat Masuk" untuk mulai mencatat</p>
+                    </div>
+                `;
+            } else {
+                html += renderTable('masuk');
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderSuratKeluar(container) {
+            let html = `
+                <div class="toolbar">
+                    <div class="search-box">
+                        <span>🔍</span>
+                        <input type="text" placeholder="Cari surat keluar..." onkeyup="searchData()">
+                    </div>
+                    <button class="btn btn-primary" onclick="openModal('keluar', 'add')">
+                        ➕ Tambah Surat Keluar
+                    </button>
+                </div>
+            `;
+
+            if (filteredData.length === 0) {
+                html += `
+                    <div class="empty-state">
+                        <h3>📪 Belum ada data surat keluar</h3>
+                        <p>Klik "Tambah Surat Keluar" untuk mulai mencatat</p>
+                    </div>
+                `;
+            } else {
+                html += renderTable('keluar');
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderTable(type) {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, filteredData.length);
+            const currentData = filteredData.slice(startIndex, endIndex);
+
+            let html = `
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No</th>
+            `;
+            
+            if (type === 'masuk') {
+                html += `
+                                <th>Tanggal Surat</th>
+                                <th>Tanggal Masuk</th>
+                                <th>Nomor Surat</th>
+                                <th>Asal Surat</th>
+                                <th>Perihal</th>
+                                <th>Tujuan/Disposisi</th>
+                                <th>Tanggal Disposisi</th>
+                                <th>Status</th>
+                                <th>File Surat</th>
+                                <th>Aksi</th>
+                `;
+            } else {
+                html += `
+                                <th>ID</th>
+                                <th>Tanggal Surat</th>
+                                <th>Nomor Surat</th>
+                                <th>Tujuan</th>
+                                <th>Perihal</th>
+                                <th>Ditandatangani oleh</th>
+                                <th>Tembusan</th>
+                                <th>Status</th>
+                                <th>File Surat</th>
+                                <th>Aksi</th>
+                `;
+            }
+            
+            html += `
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            currentData.forEach((item, index) => {
+                const actualIndex = startIndex + index + 1;
+                const statusClass = item.status === 'Terkirim' || item.status === 'Selesai' ? 'success' : item.status === 'Terlampir' ? 'info' : 'warning';
+                
+                html += `<tr><td><strong>${actualIndex}</strong></td>`;
+                
+                if (type === 'masuk') {
+                    html += `
+                        <td>${formatDate(item.tanggalSurat)}</td>
+                        <td>${formatDate(item.tanggalMasuk)}</td>
+                        <td><strong>${item.nomorSurat}</strong></td>
+                        <td>${item.asalSurat}</td>
+                        <td>${item.perihal}</td>
+                        <td>${item.tujuanDisposisi || '-'}</td>
+                        <td>${item.tanggalDisposisi ? formatDate(item.tanggalDisposisi) : '-'}</td>
+                        <td><span class="badge badge-${statusClass}">${item.status}</span></td>
+                        <td>
+                            ${item.link ? 
+                                `<a href="${item.link}" target="_blank" class="btn btn-info btn-sm">📄 Lihat</a>` : 
+                                `<button class="btn btn-primary btn-sm" onclick="openUploadModal('${type}', '${item.id}')">📎 Upload</button>`
+                            }
+                        </td>
+                    `;
+                } else {
+                    html += `
+                        <td>${item.id}</td>
+                        <td>${formatDate(item.tanggalSurat)}</td>
+                        <td><strong>${item.nomorSurat}</strong></td>
+                        <td>${item.tujuan}</td>
+                        <td>${item.perihal}</td>
+                        <td>${item.ditandatangani || '-'}</td>
+                        <td>${item.tembusan || '-'}</td>
+                        <td><span class="badge badge-${statusClass}">${item.status}</span></td>
+                        <td>
+                            ${item.link ? 
+                                `<a href="${item.link}" target="_blank" class="btn btn-info btn-sm">📄 Lihat</a>` : 
+                                `<button class="btn btn-primary btn-sm" onclick="openUploadModal('${type}', '${item.id}')">📎 Upload</button>`
+                            }
+                        </td>
+                    `;
+                }
+                
+                html += `
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn btn-warning btn-sm" onclick="editData('${type}', '${item.id}')" title="Edit">✏️</button>
+                                <button class="btn btn-danger btn-sm" onclick="deleteData('${type}', '${item.id}')" title="Hapus">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="pagination">
+                    <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+                        &laquo; Prev
+                    </button>
+                    <span class="pagination-info">
+                        Menampilkan ${startIndex + 1}-${endIndex} dari ${filteredData.length} data
+                    </span>
+                    <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+                        Next &raquo;
+                    </button>
+                </div>
+            `;
+
+            return html;
+        }
+
+        function renderDashboard(container) {
+            const totalMasuk = dataSuratMasuk.length;
+            const totalKeluar = dataSuratKeluar.length;
+            const bulanIni = new Date().getMonth();
+            const tahunIni = new Date().getFullYear();
+            
+            const masukBulanIni = dataSuratMasuk.filter(s => {
+                const date = new Date(s.tanggalMasuk || s.tanggalSurat);
+                return date.getMonth() === bulanIni && date.getFullYear() === tahunIni;
+            }).length;
+            
+            const keluarBulanIni = dataSuratKeluar.filter(s => {
+                const date = new Date(s.tanggalSurat);
+                return date.getMonth() === bulanIni && date.getFullYear() === tahunIni;
+            }).length;
+
+            let html = `
+                <h2 style="margin-bottom: 25px; color: #333;">📊 Dashboard Statistik</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3>Total Surat Masuk</h3>
+                        <div class="value">${totalMasuk}</div>
+                        <p style="margin-top: 10px; opacity: 0.9;">📥 Semua waktu</p>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <h3>Total Surat Keluar</h3>
+                        <div class="value">${totalKeluar}</div>
+                        <p style="margin-top: 10px; opacity: 0.9;">📤 Semua waktu</p>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+                        <h3>Surat Masuk Bulan Ini</h3>
+                        <div class="value">${masukBulanIni}</div>
+                        <p style="margin-top: 10px; opacity: 0.9;">📅 ${getNamaBulan(bulanIni)} ${tahunIni}</p>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);">
+                        <h3>Surat Keluar Bulan Ini</h3>
+                        <div class="value">${keluarBulanIni}</div>
+                        <p style="margin-top: 10px; opacity: 0.9;">📅 ${getNamaBulan(bulanIni)} ${tahunIni}</p>
+                    </div>
+                </div>
+
+                <h3 style="margin: 35px 0 20px 0; color: #333;">📋 Surat Masuk Terbaru</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Tanggal Surat</th>
+                                <th>Tanggal Masuk</th>
+                                <th>Nomor Surat</th>
+                                <th>Asal</th>
+                                <th>Perihal</th>
+                                <th>Status</th>
+                                <th>File Surat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            const recentMasuk = dataSuratMasuk.slice(0, 5);
+            if (recentMasuk.length === 0) {
+                html += '<tr><td colspan="7" style="text-align: center; color: #999;">Belum ada data</td></tr>';
+            } else {
+                recentMasuk.forEach(item => {
+                    const statusClass = item.status === 'Selesai' ? 'success' : item.status === 'Terlampir' ? 'info' : 'warning';
+                    html += `
+                        <tr>
+                            <td>${formatDate(item.tanggalSurat)}</td>
+                            <td>${formatDate(item.tanggalMasuk)}</td>
+                            <td><strong>${item.nomorSurat}</strong></td>
+                            <td>${item.asalSurat}</td>
+                            <td>${item.perihal}</td>
+                            <td><span class="badge badge-${statusClass}">${item.status}</span></td>
+                            <td>${item.link ? '<a href="' + item.link + '" target="_blank">📄 Lihat</a>' : '-'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3 style="margin: 35px 0 20px 0; color: #333;">📋 Surat Keluar Terbaru</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tanggal Surat</th>
+                                <th>Nomor Surat</th>
+                                <th>Tujuan</th>
+                                <th>Perihal</th>
+                                <th>Status</th>
+                                <th>File Surat</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            const recentKeluar = dataSuratKeluar.slice(0, 5);
+            if (recentKeluar.length === 0) {
+                html += '<tr><td colspan="7" style="text-align: center; color: #999;">Belum ada data</td></tr>';
+            } else {
+                recentKeluar.forEach(item => {
+                    const statusClass = item.status === 'Terkirim' ? 'success' : 'warning';
+                    html += `
+                        <tr>
+                            <td>${item.id}</td>
+                            <td>${formatDate(item.tanggalSurat)}</td>
+                            <td><strong>${item.nomorSurat}</strong></td>
+                            <td>${item.tujuan}</td>
+                            <td>${item.perihal}</td>
+                            <td><span class="badge badge-${statusClass}">${item.status}</span></td>
+                            <td>${item.link ? '<a href="' + item.link + '" target="_blank">📄 Lihat</a>' : '-'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            html += `
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        function changePage(page) {
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            if (page < 1 || page > totalPages) return;
+            
+            currentPage = page;
+            renderContent();
+        }
+
+        function searchData() {
+            const searchTerm = event.target.value.toLowerCase();
+            
+            if (searchTerm === '') {
+                updateFilteredData();
+            } else {
+                const sourceData = activeTab === 'masuk' ? dataSuratMasuk : dataSuratKeluar;
+                filteredData = sourceData.filter(item => {
+                    return Object.values(item).some(val => 
+                        String(val).toLowerCase().includes(searchTerm)
+                    );
+                });
+            }
+            
+            currentPage = 1;
+            renderContent();
+        }
+
+        function openModal(type, mode, id = null) {
+            editingId = id;
+            activeTab = type;
+            document.getElementById('modal').classList.add('active');
+            
+            const title = mode === 'add' ? 
+                (type === 'masuk' ? 'Tambah Surat Masuk' : 'Tambah Surat Keluar') :
+                (type === 'masuk' ? 'Edit Surat Masuk' : 'Edit Surat Keluar');
+            
+            document.getElementById('modalTitle').textContent = title;
+
+            const fields = document.getElementById('formFields');
+            const today = new Date().toISOString().split('T')[0];
+            
+            if (type === 'masuk') {
+                fields.innerHTML = `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tanggal Surat *</label>
+                            <input type="date" id="tanggalSurat" value="${today}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tanggal Masuk *</label>
+                            <input type="date" id="tanggalMasuk" value="${today}" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Nomor Surat *</label>
+                            <input type="text" id="nomorSurat" placeholder="Contoh: 001/SK/2025" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Asal Surat *</label>
+                            <input type="text" id="asalSurat" placeholder="Contoh: Dinas Kelautan" required>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Perihal *</label>
+                        <textarea id="perihal" placeholder="Masukkan perihal surat..." required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tujuan/Disposisi</label>
+                            <input type="text" id="tujuanDisposisi" placeholder="Contoh: Kepala UPT">
+                        </div>
+                        <div class="form-group">
+                            <label>Tanggal Disposisi</label>
+                            <input type="date" id="tanggalDisposisi">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Status *</label>
+                            <select id="status" required>
+                                <option value="">Pilih Status</option>
+                                <option value="Selesai">Selesai</option>
+                                <option value="Terlampir">Terlampir</option>
+                                <option value="Proses">Proses</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Link File Surat</label>
+                            <input type="url" id="link" placeholder="https://drive.google.com/...">
+                        </div>
+                    </div>
+                `;
+            } else {
+                fields.innerHTML = `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tanggal Surat *</label>
+                            <input type="date" id="tanggalSurat" value="${today}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Nomor Surat *</label>
+                            <input type="text" id="nomorSurat" placeholder="Contoh: 001/SK/2025" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tujuan Surat *</label>
+                            <input type="text" id="tujuan" placeholder="Contoh: Bupati Rembang" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Ditandatangani oleh</label>
+                            <input type="text" id="ditandatangani" placeholder="Contoh: Kepala UPT">
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Perihal *</label>
+                        <textarea id="perihal" placeholder="Masukkan perihal surat..." required></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tembusan</label>
+                            <input type="text" id="tembusan" placeholder="Contoh: Sekretaris, Bendahara">
+                        </div>
+                        <div class="form-group">
+                            <label>Status *</label>
+                            <select id="status" required>
+                                <option value="">Pilih Status</option>
+                                <option value="Terkirim">Terkirim</option>
+                                <option value="Kepala Dinas Ka Terkirim">Kepala Dinas Ka Terkirim</option>
+                                <option value="Proses">Proses</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label>Link File Surat</label>
+                        <input type="url" id="link" placeholder="https://drive.google.com/...">
+                    </div>
+                `;
+            }
+
+            if (mode === 'edit' && id) {
+                const data = type === 'masuk' ? dataSuratMasuk : dataSuratKeluar;
+                const item = data.find(s => s.id === id);
+                
+                if (item) {
+                    document.getElementById('tanggalSurat').value = item.tanggalSurat || '';
+                    document.getElementById('nomorSurat').value = item.nomorSurat || '';
+                    document.getElementById('perihal').value = item.perihal || '';
+                    document.getElementById('status').value = item.status || '';
+                    if (item.link) document.getElementById('link').value = item.link;
+                    
+                    if (type === 'masuk') {
+                        document.getElementById('tanggalMasuk').value = item.tanggalMasuk || '';
+                        document.getElementById('asalSurat').value = item.asalSurat || '';
+                        if (item.tujuanDisposisi) document.getElementById('tujuanDisposisi').value = item.tujuanDisposisi;
+                        if (item.tanggalDisposisi) document.getElementById('tanggalDisposisi').value = item.tanggalDisposisi;
+                    } else {
+                        document.getElementById('tujuan').value = item.tujuan || '';
+                        if (item.ditandatangani) document.getElementById('ditandatangani').value = item.ditandatangani;
+                        if (item.tembusan) document.getElementById('tembusan').value = item.tembusan;
                     }
                 }
+            }
+        }
+
+        async function saveData() {
+            const nomorSurat = document.getElementById('nomorSurat').value;
+            const perihal = document.getElementById('perihal').value;
+            const status = document.getElementById('status').value;
+            const link = document.getElementById('link')?.value || '';
+
+            let formData = {
+                id: editingId || 'SURAT_' + Date.now(),
+                nomorSurat: nomorSurat,
+                perihal: perihal,
+                status: status,
+                link: link
+            };
+
+            if (activeTab === 'masuk') {
+                const tanggalSurat = document.getElementById('tanggalSurat').value;
+                const tanggalMasuk = document.getElementById('tanggalMasuk').value;
+                const asalSurat = document.getElementById('asalSurat').value;
+                const tujuanDisposisi = document.getElementById('tujuanDisposisi')?.value || '';
+                const tanggalDisposisi = document.getElementById('tanggalDisposisi')?.value || '';
                 
-                if(isNaN(dt.getTime()))return d;
-                
-                const day=String(dt.getDate()).padStart(2,'0');
-                const month=String(dt.getMonth()+1).padStart(2,'0');
-                const year=dt.getFullYear();
-                
-                return `${day}/${month}/${year}`;
-            }catch(e){
-                console.error('Date format error:',e,d);
-                return d;
-            }
-        }
-
-        function renderTable(){
-            const d=filteredData,c=document.getElementById('tableContainer');
-            if(d.length===0){
-                c.innerHTML='<div class="empty-state"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg><h3>Belum ada data</h3><p>Klik "Tambah Surat" atau "Sync Data"</p></div>';
-                return;
-            }
-            const total=Math.ceil(d.length/itemsPerPage),start=(currentPage-1)*itemsPerPage,end=Math.min(start+itemsPerPage,d.length),cur=d.slice(start,end);
-            let h='<div class="table-container"><table><thead><tr>';
-            if(activeTab==='masuk'){
-                h+=`<th style="width:40px;">No</th>
-                    <th style="width:100px;">Tanggal Surat</th>
-                    <th style="width:100px;">Tanggal Masuk</th>
-                    <th style="width:150px;">Nomor Surat</th>
-                    <th style="width:150px;">Asal Surat</th>
-                    <th style="width:250px;">Perihal</th>
-                    <th style="width:150px;">Tujuan/Disposisi</th>
-                    <th style="width:100px;">Tanggal Disposisi</th>
-                    <th style="width:80px;">Status</th>
-                    <th style="width:120px;">File Surat</th>
-                    <th style="width:100px;">Aksi</th>`;
-            }else{
-                h+=`<th style="width:40px;">No</th>
-                    <th style="width:100px;">Tanggal Surat</th>
-                    <th style="width:150px;">Nomor Surat</th>
-                    <th style="width:150px;">Tujuan</th>
-                    <th style="width:250px;">Perihal</th>
-                    <th style="width:150px;">Disposisi</th>
-                    <th style="width:150px;">Ditandatangani</th>
-                    <th style="width:80px;">Status</th>
-                    <th style="width:120px;">File Surat</th>
-                    <th style="width:100px;">Aksi</th>`;
-            }
-            h+='</tr></thead><tbody>';
-            cur.forEach((i,x)=>{
-                const n=start+x+1;
-                h+=`<tr><td>${n}</td>`;
-                if(activeTab==='masuk'){
-                    h+=`<td style="white-space:nowrap;">${formatDisplayDate(i.tanggalSurat)}</td>
-                        <td style="white-space:nowrap;">${formatDisplayDate(i.tanggalMasuk)}</td>
-                        <td>${i.nomorSurat||'-'}</td>
-                        <td>${i.asalSurat||'-'}</td>
-                        <td style="white-space:normal;word-wrap:break-word;max-width:250px;">${i.perihal||'-'}</td>
-                        <td>${i.tujuanDisposisi||'-'}</td>
-                        <td style="white-space:nowrap;">${formatDisplayDate(i.tanggalDisposisi)}</td>
-                        <td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>
-                        <td>${i.fileSurat?`<a href="${i.fileSurat}" target="_blank" class="file-link">📄 Lihat</a>`:'-'}</td>`;
-                }else{
-                    h+=`<td style="white-space:nowrap;">${formatDisplayDate(i.tanggalSurat)}</td>
-                        <td>${i.nomorSurat||'-'}</td>
-                        <td>${i.tujuan||'-'}</td>
-                        <td style="white-space:normal;word-wrap:break-word;max-width:250px;">${i.perihal||'-'}</td>
-                        <td style="white-space:normal;word-wrap:break-word;">${i.disposisiSurat||'-'}</td>
-                        <td>${i.tandatangani||'-'}</td>
-                        <td><span class="badge badge-${getStatusClass(i.status)}">${i.status||'-'}</span></td>
-                        <td>${i.fileSurat?`<a href="${i.fileSurat}" target="_blank" class="file-link">📄 Lihat</a>`:'-'}</td>`;
-                }
-                h+=`<td><div class="actions">
-                        <button class="btn btn-warning btn-sm" onclick="editSurat('${i.id}')">✏️</button>
-                        <button class="btn btn-danger btn-sm" onclick="deleteSurat('${i.id}')">🗑️</button>
-                    </div></td></tr>`;
-            });
-            h+=`</tbody></table></div><div class="pagination"><button onclick="changePage(${currentPage-1})" ${currentPage===1?'disabled':''}>&laquo; Prev</button><span class="pagination-info">Menampilkan ${start+1}-${end} dari ${d.length} data</span><button onclick="changePage(${currentPage+1})" ${currentPage===total?'disabled':''}>Next &raquo;</button></div>`;
-            c.innerHTML=h;
-        }
-
-        function changePage(p){
-            const t=Math.ceil(filteredData.length/itemsPerPage);
-            if(p<1||p>t)return;
-            currentPage=p;
-            renderTable();
-        }
-
-        function getStatusClass(s){
-            if(!s)return'secondary';
-            const l=s.toLowerCase();
-            if(l.includes('selesai')||l.includes('terkirim'))return'success';
-            if(l.includes('proses')||l.includes('draft'))return'warning';
-            return'danger';
-        }
-
-        function openModal(m,id=null){
-            const modal=document.getElementById('modal'),title=document.getElementById('modalTitle'),fields=document.getElementById('formFields');
-            editingId=id;
-            modal.classList.add('active');
-            title.textContent=m==='add'?`Tambah Surat ${activeTab==='masuk'?'Masuk':'Keluar'}`:`Edit Surat ${activeTab==='masuk'?'Masuk':'Keluar'}`;
-            let f='';
-            if(activeTab==='masuk'){
-                f=`<div class="form-group"><label>Tanggal Surat *</label><input type="date" id="tanggalSurat"></div>
-                <div class="form-group"><label>Tanggal Masuk *</label><input type="date" id="tanggalMasuk"></div>
-                <div class="form-group"><label>Nomor Surat *</label><input type="text" id="nomorSurat" placeholder="Contoh: 001/5/B67/2025"></div>
-                <div class="form-group"><label>Asal Surat *</label><input type="text" id="asalSurat" placeholder="Contoh: Kabupaten"></div>
-                <div class="form-group"><label>Perihal *</label><textarea id="perihal"></textarea></div>
-                <div class="form-group"><label>Tujuan/Disposisi</label><input type="text" id="tujuanDisposisi"></div>
-                <div class="form-group"><label>Tanggal Disposisi</label><input type="date" id="tanggalDisposisi"></div>
-                <div class="form-group"><label>Status *</label><select id="status"><option value="">Pilih Status</option><option value="Selesai">Selesai</option><option value="Proses">Proses</option><option value="Pending">Pending</option></select></div>
-                <div class="form-group"><label>File Surat PDF (URL)</label><input type="url" id="fileSurat" placeholder="https://drive.google.com/file/d/..."></div>`;
-            }else{
-                f=`<div class="form-group"><label>Tanggal Surat *</label><input type="date" id="tanggalSurat"></div>
-                <div class="form-group"><label>Nomor Surat *</label><input type="text" id="nomorSurat"></div>
-                <div class="form-group"><label>Tujuan *</label><input type="text" id="tujuan"></div>
-                <div class="form-group"><label>Perihal *</label><textarea id="perihal"></textarea></div>
-                <div class="form-group"><label>Disposisi Surat</label><textarea id="disposisiSurat"></textarea></div>
-                <div class="form-group"><label>Ditandatangani Oleh</label><input type="text" id="tandatangani"></div>
-                <div class="form-group"><label>Status *</label><select id="status"><option value="">Pilih Status</option><option value="Draft">Draft</option><option value="Terkirim">Terkirim</option><option value="Pending">Pending</option></select></div>
-                <div class="form-group"><label>File Surat PDF (URL)</label><input type="url" id="fileSurat" placeholder="https://drive.google.com/file/d/..."></div>`;
-            }
-            fields.innerHTML=f;
-            if(m==='edit'&&id){
-                const data=activeTab==='masuk'?suratMasuk:suratKeluar,item=data.find(d=>d.id===id);
-                if(item){
-                    Object.keys(item).forEach(k=>{
-                        const inp=document.getElementById(k);
-                        if(inp&&k!=='id')inp.value=item[k]||'';
-                    });
-                }
-            }
-        }
-
-        function closeModal(){
-            document.getElementById('modal').classList.remove('active');
-            document.getElementById('suratForm').reset();
-            editingId=null;
-        }
-
-        async function saveSurat(){
-            const btn=document.getElementById('saveBtnText');
-            const form=document.getElementById('suratForm'),inputs=form.querySelectorAll('input,textarea,select');
-            const formData={};
-            inputs.forEach(i=>{if(i.id)formData[i.id]=i.value;});
-            
-            if(activeTab==='masuk'){
-                if(!formData.tanggalSurat||!formData.tanggalMasuk||!formData.nomorSurat||!formData.asalSurat||!formData.perihal||!formData.status){
+                if (!tanggalSurat || !tanggalMasuk || !nomorSurat || !asalSurat || !perihal || !status) {
                     alert('Mohon lengkapi semua field yang wajib diisi (*)');
                     return;
                 }
-            }else{
-                if(!formData.tanggalSurat||!formData.nomorSurat||!formData.tujuan||!formData.perihal||!formData.status){
+
+                formData.tanggalSurat = tanggalSurat;
+                formData.tanggalMasuk = tanggalMasuk;
+                formData.asalSurat = asalSurat;
+                formData.tujuanDisposisi = tujuanDisposisi;
+                formData.tanggalDisposisi = tanggalDisposisi;
+            } else {
+                const tanggalSurat = document.getElementById('tanggalSurat').value;
+                const tujuan = document.getElementById('tujuan').value;
+                const ditandatangani = document.getElementById('ditandatangani')?.value || '';
+                const tembusan = document.getElementById('tembusan')?.value || '';
+                
+                if (!tanggalSurat || !nomorSurat || !tujuan || !perihal || !status) {
                     alert('Mohon lengkapi semua field yang wajib diisi (*)');
                     return;
                 }
+
+                formData.tanggalSurat = tanggalSurat;
+                formData.tujuan = tujuan;
+                formData.ditandatangani = ditandatangani;
+                formData.tembusan = tembusan;
             }
+
+            const btn = document.getElementById('saveBtnText');
+            btn.innerHTML = '<div class="loading"></div> Menyimpan...';
+
+            const action = editingId ? 'update' : 'add';
+            const dataType = activeTab === 'masuk' ? 'suratMasuk' : 'suratKeluar';
             
-            btn.innerHTML='<div class="loading"></div> Menyimpan...';
-            const data=activeTab==='masuk'?suratMasuk:suratKeluar;
-            let action='';
-            
-            if(editingId!==null){
-                const idx=data.findIndex(d=>d.id===editingId);
-                if(idx!==-1){
-                    data[idx]={...data[idx],...formData,id:editingId};
-                    action='update';
-                }else{
-                    showAlert('Data tidak ditemukan','danger');
-                    btn.innerHTML='💾 Simpan';
-                    return;
+            // Simpan lokal
+            if (activeTab === 'masuk') {
+                if (editingId) {
+                    const index = dataSuratMasuk.findIndex(s => s.id === editingId);
+                    if (index !== -1) dataSuratMasuk[index] = formData;
+                } else {
+                    dataSuratMasuk.unshift(formData);
                 }
-            }else{
-                formData.id='ID_'+Date.now().toString();
-                data.push(formData);
-                action='add';
+            } else {
+                if (editingId) {
+                    const index = dataSuratKeluar.findIndex(s => s.id === editingId);
+                    if (index !== -1) dataSuratKeluar[index] = formData;
+                } else {
+                    dataSuratKeluar.unshift(formData);
+                }
             }
-            
-            if(activeTab==='masuk')suratMasuk=data;
-            else suratKeluar=data;
-            
-            try{
-                saveLocalData();
-                filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
-            }catch(e){
-                showAlert('❌ Gagal menyimpan data lokal','danger');
-                btn.innerHTML='💾 Simpan';
-                return;
+
+            updateFilteredData();
+            saveLocalData();
+
+            // Sync ke server
+            if (API_URL && isConnected) {
+                try {
+                    const result = await syncToSheet(action, dataType, formData);
+                    
+                    if (result && result.status === 'success') {
+                        showAlert('✅ Data berhasil disimpan dan disinkronkan!', 'success');
+                    } else {
+                        showAlert('⚠️ Data tersimpan lokal, tapi gagal sync: ' + (result?.message || 'Unknown error'), 'warning');
+                    }
+                } catch (error) {
+                    showAlert('⚠️ Data tersimpan lokal, tapi gagal sync: ' + error.message, 'warning');
+                }
+            } else {
+                showAlert('✅ Data berhasil disimpan lokal (offline mode)', 'info');
             }
-            
-            try{
-                await syncToSheet(action,activeTab,formData);
-                showAlert(`✅ Data berhasil ${action==='add'?'ditambahkan':'diupdate'} dan disinkronkan`,'success');
-            }catch(e){
-                showAlert(`⚠️ Data tersimpan lokal, tapi gagal sync: ${e.message}`,'warning');
-            }
-            
-            btn.innerHTML='💾 Simpan';
+
+            btn.innerHTML = '💾 Simpan';
             closeModal();
-            currentPage=1;
-            renderTable();
+            renderContent();
         }
 
-        function editSurat(id){openModal('edit',id);}
+        function editData(type, id) {
+            openModal(type, 'edit', id);
+        }
 
-        async function deleteSurat(id){
-            if(!confirm('Apakah Anda yakin ingin menghapus data ini?'))return;
-            let deleted;
-            if(activeTab==='masuk'){
-                deleted=suratMasuk.find(s=>s.id===id);
-                if(!deleted){showAlert('Data tidak ditemukan','danger');return;}
-                suratMasuk=suratMasuk.filter(s=>s.id!==id);
-            }else{
-                deleted=suratKeluar.find(s=>s.id===id);
-                if(!deleted){showAlert('Data tidak ditemukan','danger');return;}
-                suratKeluar=suratKeluar.filter(s=>s.id!==id);
+        async function deleteData(type, id) {
+            if (!confirm('Yakin ingin menghapus data ini?')) return;
+
+            let item;
+            if (type === 'masuk') {
+                item = dataSuratMasuk.find(s => s.id === id);
+                dataSuratMasuk = dataSuratMasuk.filter(s => s.id !== id);
+            } else {
+                item = dataSuratKeluar.find(s => s.id === id);
+                dataSuratKeluar = dataSuratKeluar.filter(s => s.id !== id);
             }
-            try{
-                saveLocalData();
-                filteredData=activeTab==='masuk'?[...suratMasuk]:[...suratKeluar];
-            }catch(e){
-                showAlert('❌ Gagal menghapus data','danger');
+
+            updateFilteredData();
+            saveLocalData();
+
+            if (API_URL && isConnected && item) {
+                try {
+                    const dataType = type === 'masuk' ? 'suratMasuk' : 'suratKeluar';
+                    await syncToSheet('delete', dataType, item);
+                } catch (error) {
+                    console.error('Sync delete error:', error);
+                }
+            }
+
+            showAlert('✅ Data berhasil dihapus', 'success');
+            renderContent();
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('active');
+            document.getElementById('mainForm').reset();
+            editingId = null;
+        }
+
+        // Upload File Functions
+        function openUploadModal(type, id) {
+            currentUploadId = id;
+            activeTab = type;
+            document.getElementById('uploadModal').classList.add('active');
+            resetUploadForm();
+        }
+
+        function closeUploadModal() {
+            document.getElementById('uploadModal').classList.remove('active');
+            resetUploadForm();
+        }
+
+        function resetUploadForm() {
+            document.getElementById('fileInput').value = '';
+            document.getElementById('fileList').innerHTML = '';
+            document.getElementById('progressBar').style.display = 'none';
+            document.getElementById('uploadBtn').disabled = true;
+            selectedFile = null;
+        }
+
+        function setupDragAndDrop() {
+            const uploadArea = document.getElementById('uploadArea');
+            
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+            
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, highlight, false);
+            });
+            
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, unhighlight, false);
+            });
+            
+            function highlight(e) {
+                uploadArea.classList.add('dragover');
+            }
+            
+            function unhighlight(e) {
+                uploadArea.classList.remove('dragover');
+            }
+            
+            uploadArea.addEventListener('drop', handleDrop, false);
+            
+            function handleDrop(e) {
+                const dt = e.dataTransfer;
+                const files = dt.files;
+                
+                if (files.length > 0) {
+                    handleFileSelect({ target: { files: files } });
+                }
+            }
+        }
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            // Validate file size (10MB max)
+            if (file.size > 10 * 1024 * 1024) {
+                showAlert('❌ Ukuran file terlalu besar. Maksimal 10MB', 'danger');
                 return;
             }
-            try{
-                await syncToSheet('delete',activeTab,deleted);
-                showAlert('✅ Data berhasil dihapus','success');
-            }catch(e){
-                showAlert('⚠️ Data terhapus lokal, tapi gagal sync: '+e.message,'warning');
-            }
-            renderTable();
-        }
-
-        function filterTable(){
-            const s=document.getElementById('searchInput').value.toLowerCase();
-            const data=activeTab==='masuk'?suratMasuk:suratKeluar;
-            if(!s){
-                filteredData=[...data];
-                currentPage=1;
-                renderTable();
+            
+            // Validate file type
+            const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/jpg', 'image/png'];
+            if (!allowedTypes.includes(file.type)) {
+                showAlert('❌ Tipe file tidak didukung. Gunakan PDF, DOC, DOCX, JPG, atau PNG', 'danger');
                 return;
             }
-            filteredData=data.filter(i=>Object.values(i).some(v=>String(v).toLowerCase().includes(s)));
-            currentPage=1;
-            renderTable();
+            
+            selectedFile = file;
+            
+            // Display file info
+            const fileList = document.getElementById('fileList');
+            fileList.innerHTML = `
+                <div class="file-item">
+                    <div class="file-info">
+                        <span class="file-icon">📄</span>
+                        <div>
+                            <div class="file-name">${file.name}</div>
+                            <div class="file-size">${formatFileSize(file.size)}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('uploadBtn').disabled = false;
         }
 
-        function logout(){
-            if(confirm('Apakah Anda yakin ingin logout?')){
-                localStorage.removeItem('isLoggedIn');
-                localStorage.removeItem('username');
-                window.location.href='https://upt-tpi.github.io/aplikasi-surat/login.html';
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        async function uploadFile() {
+            if (!selectedFile || !currentUploadId) return;
+            
+            const progressBar = document.getElementById('progressBar');
+            const progressFill = document.getElementById('progressFill');
+            const uploadBtn = document.getElementById('uploadBtn');
+            
+            progressBar.style.display = 'block';
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<div class="loading"></div> Mengupload...';
+            
+            try {
+                // Create FormData for upload
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('suratId', currentUploadId);
+                formData.append('suratType', activeTab);
+                formData.append('action', 'uploadFile');
+                
+                // Upload to Google Apps Script
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    // Update the surat data with file URL
+                    updateSuratFileLink(currentUploadId, result.fileUrl);
+                    
+                    showAlert('✅ File berhasil diupload ke Google Drive!', 'success');
+                    
+                    setTimeout(() => {
+                        closeUploadModal();
+                        renderContent();
+                    }, 1000);
+                } else {
+                    throw new Error(result.message || 'Upload failed');
+                }
+                
+            } catch (error) {
+                showAlert('❌ Upload gagal: ' + error.message, 'danger');
+                uploadBtn.disabled = false;
+                uploadBtn.innerHTML = '📤 Upload';
+            } finally {
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 2000);
             }
         }
 
-        function showDebugInfo(){
-            const info=`=== DEBUG INFORMATION ===
+        function updateSuratFileLink(suratId, fileUrl) {
+            if (activeTab === 'masuk') {
+                const index = dataSuratMasuk.findIndex(s => s.id === suratId);
+                if (index !== -1) {
+                    dataSuratMasuk[index].link = fileUrl;
+                }
+            } else {
+                const index = dataSuratKeluar.findIndex(s => s.id === suratId);
+                if (index !== -1) {
+                    dataSuratKeluar[index].link = fileUrl;
+                }
+            }
+            
+            saveLocalData();
+            
+            // Sync to server if connected
+            if (API_URL && isConnected) {
+                const dataType = activeTab === 'masuk' ? 'suratMasuk' : 'suratKeluar';
+                const suratData = activeTab === 'masuk' ? 
+                    dataSuratMasuk.find(s => s.id === suratId) : 
+                    dataSuratKeluar.find(s => s.id === suratId);
+                
+                if (suratData) {
+                    syncToSheet('update', dataType, suratData);
+                }
+            }
+        }
 
-API URL: ${apiUrl}
-Active Tab: ${activeTab}
-Surat Masuk Count: ${suratMasuk.length}
-Surat Keluar Count: ${suratKeluar.length}
+        function formatDate(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            const options = { day: '2-digit', month: 'short', year: 'numeric' };
+            return date.toLocaleDateString('id-ID', options);
+        }
 
-Surat Masuk (Local):
- ${JSON.stringify(suratMasuk,null,2)}
-
-Surat Keluar (Local):
- ${JSON.stringify(suratKeluar,null,2)}
-
-=== TROUBLESHOOTING ===
-✓ Data lokal tersimpan: ${suratMasuk.length+suratKeluar.length} data
-✓ LocalStorage working: ${localStorage.getItem('surat-masuk')?'YES':'NO'}
-✓ API configured: YES
-
-Buka Console (F12) untuk melihat log detail`;
-            alert(info);
-            console.log(info);
+        function getNamaBulan(index) {
+            const bulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                          'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            return bulan[index];
         }
     </script>
 </body>
 </html>
-
-
-
-
