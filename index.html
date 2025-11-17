@@ -525,6 +525,7 @@
             align-items: center;
             margin-top: 30px;
             gap: 8px;
+            flex-wrap: wrap;
         }
 
         .pagination button {
@@ -553,13 +554,6 @@
         .pagination button:disabled {
             opacity: 0.4;
             cursor: not-allowed;
-        }
-
-        .pagination-info {
-            margin: 0 20px;
-            font-size: 0.95rem;
-            color: #6b7280;
-            font-weight: 500;
         }
 
         .action-buttons {
@@ -693,90 +687,7 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📬 Sistem Manajemen Surat</h1>
-            <p>Kepala UPT Tempat Pelelangan Ikan</p>
-        </div>
-
-        <div class="config-section">
-            <div class="config-status">
-                <div class="status-indicator" id="connectionStatus"></div>
-                <span id="connectionText">Memeriksa koneksi...</span>
-            </div>
-            <div class="api-config">
-                <input type="text" id="apiUrlInput" placeholder="Paste URL Google Apps Script di sini..." value="">
-                <button class="btn btn-info btn-sm" onclick="saveApiUrl()">💾 Simpan URL</button>
-                <button class="btn btn-success btn-sm" onclick="syncAllData()">
-                    <span id="syncBtnText">🔄 Sync Data</span>
-                </button>
-            </div>
-        </div>
-
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('masuk')">
-                📥 Surat Masuk
-            </button>
-            <button class="tab" onclick="switchTab('keluar')">
-                📤 Surat Keluar
-            </button>
-            <button class="tab" onclick="switchTab('dashboard')">
-                📊 Dashboard
-            </button>
-        </div>
-
-        <div class="content">
-            <div id="alertContainer"></div>
-            <div id="contentArea"></div>
-        </div>
-    </div>
-
-    <!-- Modal Form Surat -->
-    <div id="modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modalTitle">Form Surat</h2>
-                <button class="btn btn-danger btn-sm" onclick="closeModal()">✕</button>
-            </div>
-            <div class="modal-body">
-                <form id="mainForm" onsubmit="event.preventDefault();">
-                    <div id="formFields"></div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
-                <button class="btn btn-success" onclick="saveData()">
-                    <span id="saveBtnText">💾 Simpan</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal Upload File -->
-    <div id="uploadModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📎 Upload File Surat</h2>
-                <button class="btn btn-danger btn-sm" onclick="closeUploadModal()">✕</button>
-            </div>
-            <div class="modal-body">
-                <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                    <div class="upload-icon">📁</div>
-                    <div class="upload-text">Klik atau seret file ke sini</div>
-                    <div class="upload-subtext">PDF, DOC, DOCX, JPG, PNG (Maks. 10MB)</div>
-                    <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="handleFileSelect(event)">
-                </div>
-                <div class="file-list" id="fileList"></div>
-                <div class="progress-bar" id="progressBar" style="display: none;">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeUploadModal()">Batal</button>
-                <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled>📤 Upload</button>
-            </div>
-        </div>
-    </div>
+    <div id="appContainer"></div>
 
     <script>
         let API_URL = "";
@@ -790,8 +701,177 @@
         let isConnected = false;
         let currentUploadId = null;
         let selectedFile = null;
+        let isLoggedIn = false;
+
+        // Default credentials
+        const DEFAULT_USERNAME = 'admin';
+        const DEFAULT_PASSWORD = 'admin123';
 
         window.addEventListener('load', () => {
+            checkLogin();
+        });
+
+        function checkLogin() {
+            const loggedIn = localStorage.getItem('surat-logged-in');
+            if (loggedIn === 'true') {
+                isLoggedIn = true;
+                showMainApp();
+            } else {
+                showLoginPage();
+            }
+        }
+
+        function showLoginPage() {
+            const container = document.getElementById('appContainer');
+            container.innerHTML = `
+                <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                    <div style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 25px 70px rgba(0,0,0,0.3); width: 90%; max-width: 400px;">
+                        <div style="text-align: center; margin-bottom: 30px;">
+                            <h1 style="color: #667eea; font-size: 2rem; margin-bottom: 10px;">🔐 Login</h1>
+                            <p style="color: #6b7280;">Sistem Manajemen Surat</p>
+                        </div>
+                        <div id="loginAlert"></div>
+                        <form onsubmit="handleLogin(event)">
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Username</label>
+                                <input type="text" id="loginUsername" placeholder="Masukkan username" required
+                                    style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 0.95rem;">
+                            </div>
+                            <div style="margin-bottom: 25px;">
+                                <label style="display: block; margin-bottom: 8px; font-weight: 600; color: #333;">Password</label>
+                                <input type="password" id="loginPassword" placeholder="Masukkan password" required
+                                    style="width: 100%; padding: 12px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 0.95rem;">
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px;">
+                                🔑 Login
+                            </button>
+                        </form>
+                        <div style="margin-top: 20px; padding: 15px; background: #f0f4ff; border-radius: 10px; font-size: 0.85rem; color: #667eea;">
+                            <strong>Info:</strong> Username: admin | Password: admin123
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function handleLogin(event) {
+            event.preventDefault();
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (username === DEFAULT_USERNAME && password === DEFAULT_PASSWORD) {
+                localStorage.setItem('surat-logged-in', 'true');
+                isLoggedIn = true;
+                showMainApp();
+            } else {
+                const alertDiv = document.getElementById('loginAlert');
+                alertDiv.innerHTML = `
+                    <div style="padding: 12px; background: #fee2e2; color: #991b1b; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ef4444;">
+                        ❌ Username atau password salah!
+                    </div>
+                `;
+                setTimeout(() => alertDiv.innerHTML = '', 3000);
+            }
+        }
+
+        function logout() {
+            if (confirm('Yakin ingin logout?')) {
+                localStorage.removeItem('surat-logged-in');
+                isLoggedIn = false;
+                location.reload();
+            }
+        }
+
+        function showMainApp() {
+            const container = document.getElementById('appContainer');
+            container.innerHTML = `
+                <div class="container">
+                    <div class="header">
+                        <h1>📬 Sistem Manajemen Surat</h1>
+                        <p>Kepala UPT Tempat Pelelangan Ikan</p>
+                    </div>
+
+                    <div class="config-section">
+                        <div class="config-status">
+                            <div class="status-indicator" id="connectionStatus"></div>
+                            <span id="connectionText">Memeriksa koneksi...</span>
+                        </div>
+                        <div class="api-config">
+                            <input type="text" id="apiUrlInput" placeholder="Paste URL Google Apps Script di sini..." value="">
+                            <button class="btn btn-info btn-sm" onclick="saveApiUrl()">💾 Simpan URL</button>
+                            <button class="btn btn-success btn-sm" onclick="syncAllData()">
+                                <span id="syncBtnText">🔄 Sync Data</span>
+                            </button>
+                            <button class="btn btn-danger btn-sm" onclick="logout()">🚪 Logout</button>
+                        </div>
+                    </div>
+
+                    <div class="tabs">
+                        <button class="tab active" onclick="switchTab('masuk')">
+                            📥 Surat Masuk
+                        </button>
+                        <button class="tab" onclick="switchTab('keluar')">
+                            📤 Surat Keluar
+                        </button>
+                        <button class="tab" onclick="switchTab('dashboard')">
+                            📊 Dashboard
+                        </button>
+                    </div>
+
+                    <div class="content">
+                        <div id="alertContainer"></div>
+                        <div id="contentArea"></div>
+                    </div>
+                </div>
+
+                <!-- Modal Form Surat -->
+                <div id="modal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2 id="modalTitle">Form Surat</h2>
+                            <button class="btn btn-danger btn-sm" onclick="closeModal()">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <form id="mainForm" onsubmit="event.preventDefault();">
+                                <div id="formFields"></div>
+                            </form>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="closeModal()">Batal</button>
+                            <button class="btn btn-success" onclick="saveData()">
+                                <span id="saveBtnText">💾 Simpan</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Upload File -->
+                <div id="uploadModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>📎 Upload File Surat</h2>
+                            <button class="btn btn-danger btn-sm" onclick="closeUploadModal()">✕</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                                <div class="upload-icon">📁</div>
+                                <div class="upload-text">Klik atau seret file ke sini</div>
+                                <div class="upload-subtext">PDF, DOC, DOCX, JPG, PNG (Maks. 10MB)</div>
+                                <input type="file" id="fileInput" class="file-input" accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" onchange="handleFileSelect(event)">
+                            </div>
+                            <div class="file-list" id="fileList"></div>
+                            <div class="progress-bar" id="progressBar" style="display: none;">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" onclick="closeUploadModal()">Batal</button>
+                            <button class="btn btn-primary" id="uploadBtn" onclick="uploadFile()" disabled>📤 Upload</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+
             loadApiUrl();
             loadLocalData();
             if (API_URL) {
@@ -800,10 +880,8 @@
                 showAlert('⚠️ Silakan masukkan URL Google Apps Script terlebih dahulu', 'warning');
             }
             renderContent();
-            
-            // Setup drag and drop
             setupDragAndDrop();
-        });
+        }
 
         function loadApiUrl() {
             const saved = localStorage.getItem('surat-api-url');
@@ -1136,19 +1214,66 @@
                         </tbody>
                     </table>
                 </div>
+            `;
+
+            // Improved Pagination
+            if (totalPages > 1) {
+                html += `<div class="pagination">`;
                 
-                <div class="pagination">
+                // Previous button
+                html += `
                     <button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
                         &laquo; Prev
                     </button>
-                    <span class="pagination-info">
-                        Menampilkan ${startIndex + 1}-${endIndex} dari ${filteredData.length} data
-                    </span>
+                `;
+                
+                // Page numbers
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, currentPage + 2);
+                
+                if (currentPage <= 3) {
+                    endPage = Math.min(5, totalPages);
+                }
+                if (currentPage >= totalPages - 2) {
+                    startPage = Math.max(1, totalPages - 4);
+                }
+                
+                if (startPage > 1) {
+                    html += `<button onclick="changePage(1)">1</button>`;
+                    if (startPage > 2) {
+                        html += `<button disabled>...</button>`;
+                    }
+                }
+                
+                for (let i = startPage; i <= endPage; i++) {
+                    html += `
+                        <button onclick="changePage(${i})" class="${i === currentPage ? 'active' : ''}">
+                            ${i}
+                        </button>
+                    `;
+                }
+                
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        html += `<button disabled>...</button>`;
+                    }
+                    html += `<button onclick="changePage(${totalPages})">${totalPages}</button>`;
+                }
+                
+                html += `
                     <button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
                         Next &raquo;
                     </button>
-                </div>
-            `;
+                `;
+                
+                html += `</div>`;
+                
+                html += `
+                    <div style="text-align: center; margin-top: 15px; color: #6b7280; font-size: 0.9rem;">
+                        Menampilkan ${startIndex + 1}-${endIndex} dari ${filteredData.length} data | Halaman ${currentPage} dari ${totalPages}
+                    </div>
+                `;
+            }
 
             return html;
         }
@@ -1510,7 +1635,6 @@
             const action = editingId ? 'update' : 'add';
             const dataType = activeTab === 'masuk' ? 'suratMasuk' : 'suratKeluar';
             
-            // Simpan lokal
             if (activeTab === 'masuk') {
                 if (editingId) {
                     const index = dataSuratMasuk.findIndex(s => s.id === editingId);
@@ -1530,7 +1654,6 @@
             updateFilteredData();
             saveLocalData();
 
-            // Sync ke server
             if (API_URL && isConnected) {
                 try {
                     const result = await syncToSheet(action, dataType, formData);
@@ -1590,7 +1713,6 @@
             editingId = null;
         }
 
-        // Upload File Functions
         function openUploadModal(type, id) {
             currentUploadId = id;
             activeTab = type;
@@ -1655,13 +1777,11 @@
             const file = event.target.files[0];
             if (!file) return;
             
-            // Validate file size (10MB max)
             if (file.size > 10 * 1024 * 1024) {
                 showAlert('❌ Ukuran file terlalu besar. Maksimal 10MB', 'danger');
                 return;
             }
             
-            // Validate file type
             const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/jpg', 'image/png'];
             if (!allowedTypes.includes(file.type)) {
                 showAlert('❌ Tipe file tidak didukung. Gunakan PDF, DOC, DOCX, JPG, atau PNG', 'danger');
@@ -1670,7 +1790,6 @@
             
             selectedFile = file;
             
-            // Display file info
             const fileList = document.getElementById('fileList');
             fileList.innerHTML = `
                 <div class="file-item">
@@ -1707,14 +1826,12 @@
             uploadBtn.innerHTML = '<div class="loading"></div> Mengupload...';
             
             try {
-                // Create FormData for upload
                 const formData = new FormData();
                 formData.append('file', selectedFile);
                 formData.append('suratId', currentUploadId);
                 formData.append('suratType', activeTab);
                 formData.append('action', 'uploadFile');
                 
-                // Upload to Google Apps Script
                 const response = await fetch(API_URL, {
                     method: 'POST',
                     body: formData
@@ -1723,7 +1840,6 @@
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    // Update the surat data with file URL
                     updateSuratFileLink(currentUploadId, result.fileUrl);
                     
                     showAlert('✅ File berhasil diupload ke Google Drive!', 'success');
@@ -1763,7 +1879,6 @@
             
             saveLocalData();
             
-            // Sync to server if connected
             if (API_URL && isConnected) {
                 const dataType = activeTab === 'masuk' ? 'suratMasuk' : 'suratKeluar';
                 const suratData = activeTab === 'masuk' ? 
